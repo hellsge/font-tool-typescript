@@ -1,0 +1,15 @@
+# 忽略测试输出目录（保留目录结构）
+cpp_reference/*
+!cpp_reference/.gitkeep
+
+ts_output/*
+!ts_output/.gitkeep
+
+# 忽略测试报告（保留目录结构）
+reports/*
+!reports/.gitkeep
+
+# 忽略临时文件
+*.tmp
+*.log
+.DS_Store

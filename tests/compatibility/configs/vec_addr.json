@@ -1,0 +1,17 @@
+{
+  "fonts": [
+    {
+      "fontPath": "../../../../font-tool-release/Font/NotoSans_Regular.ttf",
+      "outputPath": "../ts_output/vec_addr/",
+      "fontSize": 32,
+      "outputFormat": "vector",
+      "indexMethod": 0,
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0061-0x007A"
+        }
+      ]
+    }
+  ]
+}

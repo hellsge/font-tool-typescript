@@ -26,6 +26,12 @@
     "test:properties": "jest --testPathPattern='properties.test.ts$'",
     "test:integration": "jest --testPathPattern='integration.test.ts$|e2e.test.ts$'",
     "test:compatibility": "jest --testPathPattern='compatibility.test.ts$'",
+    "test:compat:r2": "npx ts-node tests/compatibility/quick-test-r2.ts",
+    "test:compat:quick": "npx ts-node tests/compatibility/run-all.ts --quick",
+    "test:compat:full": "npx ts-node tests/compatibility/run-all.ts",
+    "test:compat:gen-cpp": "npx ts-node tests/compatibility/run-cpp.ts",
+    "test:compat:gen-ts": "npx ts-node tests/compatibility/run-ts.ts",
+    "test:compat:compare": "npx ts-node tests/compatibility/compare.ts",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
     "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
@@ -53,6 +59,7 @@
     "jest": "^29.5.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   },
   "keywords": [
