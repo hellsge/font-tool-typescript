@@ -96,12 +96,15 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
    */
 
   it('should clean up partial files when write error occurs', () => {
+    let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 20 })
           .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
-          const outputPath = path.join(tempDir, dirName);
+          // Use a unique directory for each test run to avoid race conditions
+          const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
+          const outputPath = path.join(tempDir, uniqueDirName);
           fs.mkdirSync(outputPath, { recursive: true });
 
           const config: FontConfig = {
@@ -139,12 +142,15 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
   });
 
   it('should clean up partial files when load error occurs after file creation', () => {
+    let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 20 })
           .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
-          const outputPath = path.join(tempDir, dirName);
+          // Use a unique directory for each test run to avoid race conditions
+          const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
+          const outputPath = path.join(tempDir, uniqueDirName);
           fs.mkdirSync(outputPath, { recursive: true });
 
           const config: FontConfig = {
@@ -178,12 +184,15 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
   });
 
   it('should not delete files on successful generation', () => {
+    let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 20 })
           .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
-          const outputPath = path.join(tempDir, dirName);
+          // Use a unique directory for each test run to avoid race conditions
+          const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
+          const outputPath = path.join(tempDir, uniqueDirName);
           fs.mkdirSync(outputPath, { recursive: true });
 
           const config: FontConfig = {
@@ -221,12 +230,15 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
   });
 
   it('should handle cleanup errors gracefully', () => {
+    let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 20 })
           .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
-          const outputPath = path.join(tempDir, dirName);
+          // Use a unique directory for each test run to avoid race conditions
+          const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
+          const outputPath = path.join(tempDir, uniqueDirName);
           fs.mkdirSync(outputPath, { recursive: true });
 
           const config: FontConfig = {

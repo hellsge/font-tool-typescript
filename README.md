@@ -276,6 +276,128 @@ rotation=0
 └─────────────────────────────────────┘
 ```
 
+## 编程接口集成
+
+### 命令行方式
+
+```javascript
+const { execSync } = require('child_process');
+const fs = require('fs');
+
+// 准备配置文件
+const config = {
+  fonts: [{
+    fontPath: 'fonts/Arial.ttf',
+    outputPath: 'output/',
+    fontSize: 16,
+    renderMode: 4,
+    bold: false,
+    italic: false,
+    rotation: 0,
+    gamma: 1.0,
+    indexMethod: 0,
+    crop: false,
+    outputFormat: 'bitmap',
+    characterSets: [
+      { type: 'range', value: '0x0020-0x007F' }
+    ]
+  }]
+};
+
+fs.writeFileSync('font-config.json', JSON.stringify(config, null, 2));
+execSync('npx font-converter font-config.json', { stdio: 'inherit' });
+```
+
+### API 方式
+
+```javascript
+const { 
+  RenderMode, 
+  Rotation, 
+  IndexMethod,
+  BitmapFontGenerator 
+} = require('@font-tools/converter-ts');
+
+async function convertFont() {
+  const config = {
+    fontPath: 'fonts/Arial.ttf',
+    outputPath: 'output/',
+    fontSize: 16,
+    renderMode: RenderMode.BIT_4,
+    rotation: Rotation.ROTATE_0,
+    indexMethod: IndexMethod.ADDRESS,
+    bold: false,
+    italic: false,
+    crop: false,
+    gamma: 1.0,
+    outputFormat: 'bitmap',
+    characterSets: [
+      { type: 'range', value: '0x0020-0x007F' }
+    ]
+  };
+
+  const generator = new BitmapFontGenerator(config);
+  await generator.generate();
+  console.log('字体转换完成！');
+}
+
+convertFont().catch(console.error);
+```
+
+### TypeScript 支持
+
+```typescript
+import { 
+  FontConfig, 
+  RenderMode, 
+  BitmapFontGenerator 
+} from '@font-tools/converter-ts';
+
+const config: FontConfig = {
+  fontPath: 'fonts/Arial.ttf',
+  outputPath: 'output/',
+  fontSize: 16,
+  renderMode: RenderMode.BIT_4,
+  // TypeScript 提供完整的类型检查和智能提示
+  // ...
+};
+
+const generator = new BitmapFontGenerator(config);
+await generator.generate();
+```
+
+### 错误处理
+
+```javascript
+const { 
+  FontConverterError, 
+  ErrorCode,
+  isFontConverterError 
+} = require('@font-tools/converter-ts');
+
+try {
+  await generator.generate();
+} catch (error) {
+  if (isFontConverterError(error)) {
+    switch (error.code) {
+      case ErrorCode.FONT_FILE_NOT_FOUND:
+        console.error('字体文件不存在:', error.context.path);
+        break;
+      case ErrorCode.CONFIG_VALIDATION_ERROR:
+        console.error('配置错误:', error.message);
+        break;
+      case ErrorCode.OUTPUT_DIRECTORY_ERROR:
+        console.error('输出目录错误:', error.message);
+        break;
+      default:
+        console.error('转换失败:', error.message);
+    }
+  } else {
+    console.error('未知错误:', error);
+  }
+}
+```
+
 ## 开发
 
 ### 构建
@@ -346,6 +468,25 @@ Error: Cannot create output directory
 ```
 A: 确保对输出目录有写权限，工具会自动创建不存在的目录。
 
+**Q: 如何处理中文字体？**
+```javascript
+characterSets: [
+  { type: 'codepage', value: 'CP936' },  // 简体中文
+  // 或
+  { type: 'range', value: '0x4E00-0x9FFF' }  // CJK 统一汉字
+]
+```
+
+**Q: 如何批量转换多个字体？**
+```javascript
+const config = {
+  fonts: [
+    { fontPath: 'fonts/Arial.ttf', outputPath: 'output/arial/', fontSize: 16, /* ... */ },
+    { fontPath: 'fonts/SimSun.ttf', outputPath: 'output/simsun/', fontSize: 16, /* ... */ }
+  ]
+};
+```
+
 ### 调试
 
 启用详细日志：
@@ -366,13 +507,29 @@ NODE_ENV=development font-converter config.json
 - Render mode（8-bit 比 1-bit 慢）
 - 是否启用 cropping
 
+### 性能优化建议
+
+1. **选择合适的 renderMode**
+   - 嵌入式设备内存有限：使用 BIT_1 或 BIT_2
+   - 需要较好显示效果：使用 BIT_4（推荐）
+   - 高端设备：使用 BIT_8
+
+2. **启用 crop 减小文件大小**
+   ```javascript
+   crop: true  // 移除字符周围的空白
+   ```
+
+3. **选择合适的 indexMethod**
+   - 字符数量少（<1000）：使用 OFFSET 模式节省空间
+   - 需要快速查找：使用 ADDRESS 模式
+
+4. **批量处理**
+   - 一次配置文件处理多个字体
+   - 避免频繁启动进程
+
 ## 许可证
 
 MIT
-
-## 贡献
-
-欢迎贡献！请提交 Pull Request 或创建 Issue。
 
 ## 相关项目
 

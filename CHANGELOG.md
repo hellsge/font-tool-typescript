@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-12-25
+
+### Fixed
+- 修复 property-based tests 中的竞态条件问题
+- 改进错误清理测试的稳定性
+- 优化目录创建和路径处理测试
+
+### Changed
+- 更新 README 文档，添加更详细的使用说明
+- 改进配置验证错误消息
+- 优化测试套件性能
+
+### Removed
+- 移除冗余的文档文件（CONTRIBUTING.md, IMPLEMENTATION_STATUS.md）
+
 ## [1.0.0] - 2024-12-25
 
 ### Added

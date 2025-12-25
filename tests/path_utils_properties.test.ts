@@ -363,12 +363,16 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
       fc.property(
         fc.array(
           fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s))
+            // Normalize to lowercase on Windows to avoid case-sensitivity issues
+            .map(s => process.platform === 'win32' ? s.toLowerCase() : s),
           { minLength: 1, maxLength: 3 }
         ),
         fc.array(
           fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s))
+            // Normalize to lowercase on Windows to avoid case-sensitivity issues
+            .map(s => process.platform === 'win32' ? s.toLowerCase() : s),
           { minLength: 1, maxLength: 3 }
         ),
         (fromSegments, toSegments) => {
@@ -386,7 +390,16 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
 
           // Resolving the relative path from fromPath should give toPath
           const resolved = path.resolve(fromPath, relativePath);
-          expect(PathUtils.normalize(resolved)).toBe(PathUtils.normalize(toPath));
+          
+          // On Windows, normalize case for comparison since filesystem is case-insensitive
+          const normalizedResolved = process.platform === 'win32' 
+            ? PathUtils.normalize(resolved).toLowerCase()
+            : PathUtils.normalize(resolved);
+          const normalizedToPath = process.platform === 'win32'
+            ? PathUtils.normalize(toPath).toLowerCase()
+            : PathUtils.normalize(toPath);
+          
+          expect(normalizedResolved).toBe(normalizedToPath);
         }
       ),
       { numRuns: 100 }

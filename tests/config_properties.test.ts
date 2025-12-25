@@ -27,6 +27,28 @@ const TEST_FONT = path.join(TEST_DIR, 'test.ttf');
 const TEST_CHARSET = path.join(TEST_DIR, 'test.cst');
 const TEST_OUTPUT = path.join(TEST_DIR, 'output');
 
+// Setup: Create temporary test files before all tests
+beforeAll(() => {
+  if (!fs.existsSync(TEST_DIR)) {
+    fs.mkdirSync(TEST_DIR, { recursive: true });
+  }
+  // Create dummy font file
+  fs.writeFileSync(TEST_FONT, Buffer.from([0x00, 0x01, 0x00, 0x00]));
+  // Create dummy charset file
+  fs.writeFileSync(TEST_CHARSET, Buffer.from([0x01, 0x00, 0x00, 0x00, 0x41, 0x00]));
+  // Create output directory
+  if (!fs.existsSync(TEST_OUTPUT)) {
+    fs.mkdirSync(TEST_OUTPUT, { recursive: true });
+  }
+});
+
+// Teardown: Clean up temporary files after all tests
+afterAll(() => {
+  if (fs.existsSync(TEST_DIR)) {
+    fs.rmSync(TEST_DIR, { recursive: true, force: true });
+  }
+});
+
 /**
  * Arbitrary generator for CharacterSetSource
  */
@@ -42,7 +64,11 @@ const characterSetSourceArbitrary = (): fc.Arbitrary<CharacterSetSource> => {
     }),
     fc.record({
       type: fc.constant('range' as const),
-      value: fc.string({ minLength: 1, maxLength: 30 })
+      // Generate valid Unicode range strings in format "0xXXXX-0xYYYY"
+      value: fc.tuple(
+        fc.integer({ min: 0x0020, max: 0x007F }),
+        fc.integer({ min: 0x0080, max: 0x00FF })
+      ).map(([start, end]) => `0x${start.toString(16)}-0x${end.toString(16)}`)
     }),
     fc.record({
       type: fc.constant('string' as const),
@@ -95,8 +121,9 @@ const fontConfigArbitrary = (): fc.Arbitrary<FontConfig> => {
     bold: fc.boolean(),
     italic: fc.boolean(),
     rotation: rotationArbitrary(),
-    // Use integer-based gamma to avoid NaN and precision issues
-    gamma: fc.integer({ min: 10, max: 300 }).map(n => n / 100),
+    // Generate gamma in valid range [0.1, 5.0], avoiding boundary precision issues
+    // Use integer-based generation: 11-500 mapped to 0.11-5.00
+    gamma: fc.integer({ min: 11, max: 500 }).map(n => n / 100),
     indexMethod: indexMethodArbitrary(),
     crop: fc.boolean(),
     characterSets: fc.array(characterSetSourceArbitrary(), { minLength: 1, maxLength: 10 }),
@@ -194,28 +221,6 @@ function compareFontConfigs(original: FontConfig, parsed: FontConfig, configDir:
 }
 
 describe('Feature: typescript-font-converter, Property 1: 配置解析 Round-Trip', () => {
-  // Setup: Create temporary test files
-  beforeAll(() => {
-    if (!fs.existsSync(TEST_DIR)) {
-      fs.mkdirSync(TEST_DIR, { recursive: true });
-    }
-    // Create dummy font file
-    fs.writeFileSync(TEST_FONT, Buffer.from([0x00, 0x01, 0x00, 0x00]));
-    // Create dummy charset file
-    fs.writeFileSync(TEST_CHARSET, Buffer.from([0x01, 0x00, 0x00, 0x00, 0x41, 0x00]));
-    // Create output directory
-    if (!fs.existsSync(TEST_OUTPUT)) {
-      fs.mkdirSync(TEST_OUTPUT, { recursive: true });
-    }
-  });
-
-  // Teardown: Clean up temporary files
-  afterAll(() => {
-    if (fs.existsSync(TEST_DIR)) {
-      fs.rmSync(TEST_DIR, { recursive: true, force: true });
-    }
-  });
-
   /**
    * Property 1: Configuration Round-Trip
    * For any valid FontConfig, serializing to JSON and parsing back
@@ -349,7 +354,7 @@ describe('Feature: typescript-font-converter, Property 2: 配置验证拒绝无�
         invalidFontConfigArbitrary(),
         ({ config, invalidField }) => {
           try {
-            ConfigManager.validateConfig(config);
+            ConfigManager.validateConfig(config, true); // Skip file checks
             // If we get here, validation didn't throw - this is a failure
             return false;
           } catch (error) {
@@ -390,7 +395,7 @@ describe('Feature: typescript-font-converter, Property 2: 配置验证拒绝无�
         fontConfigArbitrary(),
         (config) => {
           try {
-            ConfigManager.validateConfig(config);
+            ConfigManager.validateConfig(config, true); // Skip file checks
             return true;
           } catch (error) {
             // Valid config should not throw

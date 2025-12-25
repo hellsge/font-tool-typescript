@@ -492,9 +492,10 @@ export class ConfigManager {
    * Validates a font configuration
    * 
    * @param config - Font configuration to validate
+   * @param skipFileChecks - Skip file existence checks (useful for testing)
    * @throws FontConverterError if validation fails
    */
-  public static validateConfig(config: FontConfig): void {
+  public static validateConfig(config: FontConfig, skipFileChecks: boolean = false): void {
     // Validate required fields
     if (!config.fontPath) {
       throw createConfigValidationError(
@@ -512,8 +513,10 @@ export class ConfigManager {
       );
     }
 
-    // Validate file paths exist
-    this.validateFilePaths(config);
+    // Validate file paths exist (unless skipped for testing)
+    if (!skipFileChecks) {
+      this.validateFilePaths(config);
+    }
 
     // Validate fontSize range
     if (config.fontSize < VALIDATION_LIMITS.MIN_FONT_SIZE ||
@@ -598,9 +601,10 @@ export class ConfigManager {
    * Validates all configurations in a root config
    * 
    * @param rootConfig - Root configuration with multiple fonts
+   * @param skipFileChecks - Skip file existence checks (useful for testing)
    * @throws FontConverterError if any validation fails
    */
-  public static validateRootConfig(rootConfig: RootConfig): void {
+  public static validateRootConfig(rootConfig: RootConfig, skipFileChecks: boolean = false): void {
     if (!rootConfig.fonts || rootConfig.fonts.length === 0) {
       throw createConfigValidationError(
         'fonts',
@@ -611,7 +615,7 @@ export class ConfigManager {
 
     for (let i = 0; i < rootConfig.fonts.length; i++) {
       try {
-        this.validateConfig(rootConfig.fonts[i]);
+        this.validateConfig(rootConfig.fonts[i], skipFileChecks);
       } catch (error) {
         if (error instanceof FontConverterError) {
           // Add context about which font config failed
