@@ -1,0 +1,27 @@
+{
+  "fonts": [
+    {
+      "fontPath": "../font-tool-release/Font/NotoSans_Regular.ttf",
+      "outputPath": "./output/",
+      "fontSize": 20,
+      "renderMode": 8,
+      "bold": true,
+      "italic": true,
+      "rotation": 0,
+      "gamma": 1.2,
+      "indexMethod": 0,
+      "crop": false,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007F"
+        },
+        {
+          "type": "string",
+          "value": "Hello World! 常用文本"
+        }
+      ]
+    }
+  ]
+}

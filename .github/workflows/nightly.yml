@@ -1,0 +1,154 @@
+name: Nightly Tests
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  extended-tests:
+    name: Extended Test Suite on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Run all tests with extended iterations
+        working-directory: font-tool-typescript
+        run: npm test
+        env:
+          # Increase property test iterations for nightly runs
+          JEST_TIMEOUT: 300000
+      
+      - name: Generate detailed coverage report
+        working-directory: font-tool-typescript
+        run: npm run test:coverage
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.os }}
+          path: font-tool-typescript/coverage/
+          retention-days: 30
+  
+  performance-tests:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Run small character set benchmark
+        working-directory: font-tool-typescript
+        run: |
+          echo "Testing small character set (<1000 chars)..."
+          time node bin/font-converter.js examples/bitmap_basic.json
+      
+      - name: Run medium character set benchmark
+        working-directory: font-tool-typescript
+        run: |
+          echo "Testing medium character set (1000-10000 chars)..."
+          time node bin/font-converter.js examples/chinese_characters.json
+      
+      - name: Run large character set benchmark
+        working-directory: font-tool-typescript
+        run: |
+          echo "Testing large character set (>10000 chars)..."
+          time node bin/font-converter.js examples/advanced_multi_config.json
+  
+  memory-tests:
+    name: Memory Usage Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Monitor memory usage
+        working-directory: font-tool-typescript
+        run: |
+          echo "Monitoring memory usage during font conversion..."
+          /usr/bin/time -v node bin/font-converter.js examples/advanced_multi_config.json 2>&1 | tee memory-report.txt
+      
+      - name: Check memory threshold
+        working-directory: font-tool-typescript
+        run: |
+          MAX_MEMORY_KB=512000  # 500MB threshold
+          ACTUAL_MEMORY=$(grep "Maximum resident set size" memory-report.txt | awk '{print $6}')
+          echo "Memory used: ${ACTUAL_MEMORY} KB"
+          echo "Threshold: ${MAX_MEMORY_KB} KB"
+          if [ "$ACTUAL_MEMORY" -gt "$MAX_MEMORY_KB" ]; then
+            echo "ERROR: Memory usage exceeded threshold!"
+            exit 1
+          fi
+      
+      - name: Upload memory report
+        uses: actions/upload-artifact@v3
+        with:
+          name: memory-report
+          path: font-tool-typescript/memory-report.txt
+          retention-days: 30
+  
+  notify:
+    name: Notify on Failure
+    needs: [extended-tests, performance-tests, memory-tests]
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Send notification
+        run: |
+          echo "Nightly tests failed! Check the workflow logs for details."
+          # Add notification logic here (e.g., Slack, email, etc.)

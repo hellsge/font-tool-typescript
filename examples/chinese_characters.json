@@ -1,0 +1,27 @@
+{
+  "fonts": [
+    {
+      "fontPath": "../font-tool-release/Font/NotoSansSC_Regular.ttf",
+      "outputPath": "./output/chinese/",
+      "fontSize": 24,
+      "renderMode": 8,
+      "bold": false,
+      "italic": false,
+      "rotation": 0,
+      "gamma": 1.0,
+      "indexMethod": 1,
+      "crop": false,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "file",
+          "value": "../font-tool-release/charset/GB2312-8K.cst"
+        },
+        {
+          "type": "string",
+          "value": "常用汉字示例文本"
+        }
+      ]
+    }
+  ]
+}

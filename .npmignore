@@ -1,0 +1,37 @@
+# Source files
+src/
+tests/
+test-output/
+
+# Configuration files
+.eslintrc.js
+.prettierrc.js
+jest.config.js
+tsconfig.json
+
+# Development files
+*.test.ts
+*.spec.ts
+.git/
+.github/
+node_modules/
+
+# Build artifacts
+*.log
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Documentation (keep README.md)
+IMPLEMENTATION_STATUS.md

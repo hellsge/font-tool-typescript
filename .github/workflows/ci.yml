@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [16, 18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: font-tool-typescript
+        run: npm run lint
+      
+      - name: Check formatting
+        working-directory: font-tool-typescript
+        run: npm run format:check
+      
+      - name: Type check
+        working-directory: font-tool-typescript
+        run: npm run typecheck
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Run unit tests
+        working-directory: font-tool-typescript
+        run: npm run test:unit
+      
+      - name: Run property-based tests
+        working-directory: font-tool-typescript
+        run: npm run test:properties
+      
+      - name: Run integration tests
+        working-directory: font-tool-typescript
+        run: npm run test:integration
+      
+      - name: Generate coverage report
+        working-directory: font-tool-typescript
+        run: npm run test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./font-tool-typescript/coverage/lcov.info
+          flags: ${{ matrix.os }}-node${{ matrix.node }}
+          name: ${{ matrix.os }}-node${{ matrix.node }}
+  
+  compatibility:
+    name: C++ Compatibility Test
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Run compatibility tests
+        working-directory: font-tool-typescript
+        run: npm run test:compatibility
+  
+  cross-platform-consistency:
+    name: Cross-Platform Binary Consistency
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: font-tool-typescript/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: font-tool-typescript
+        run: npm ci
+      
+      - name: Build
+        working-directory: font-tool-typescript
+        run: npm run build
+      
+      - name: Generate test output
+        working-directory: font-tool-typescript
+        run: node bin/font-converter.js examples/bitmap_basic.json
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: output-${{ matrix.os }}
+          path: font-tool-typescript/output/
+          retention-days: 7
+  
+  compare-outputs:
+    name: Compare Cross-Platform Outputs
+    needs: cross-platform-consistency
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download Ubuntu output
+        uses: actions/download-artifact@v3
+        with:
+          name: output-ubuntu-latest
+          path: ./ubuntu-output
+      
+      - name: Download Windows output
+        uses: actions/download-artifact@v3
+        with:
+          name: output-windows-latest
+          path: ./windows-output
+      
+      - name: Download macOS output
+        uses: actions/download-artifact@v3
+        with:
+          name: output-macos-latest
+          path: ./macos-output
+      
+      - name: Compare binary outputs
+        run: |
+          echo "Comparing Ubuntu vs Windows..."
+          diff -r ubuntu-output windows-output || echo "Differences found between Ubuntu and Windows"
+          
+          echo "Comparing Ubuntu vs macOS..."
+          diff -r ubuntu-output macos-output || echo "Differences found between Ubuntu and macOS"
+          
+          echo "Comparing Windows vs macOS..."
+          diff -r windows-output macos-output || echo "Differences found between Windows and macOS"

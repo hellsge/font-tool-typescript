@@ -1,0 +1,23 @@
+{
+  "fonts": [
+    {
+      "fontPath": "../font-tool-release/Font/NotoSans_Regular.ttf",
+      "outputPath": "./output/",
+      "fontSize": 16,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "rotation": 0,
+      "gamma": 1.0,
+      "indexMethod": 0,
+      "crop": false,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007F"
+        }
+      ]
+    }
+  ]
+}
