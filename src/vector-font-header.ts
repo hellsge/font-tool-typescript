@@ -73,17 +73,22 @@ export class VectorFontHeader {
   /** File flag (always VECTOR = 2) */
   public readonly fileFlag: FileFlag = FileFlag.VECTOR;
   
-  /** Version major (always 1) */
-  public readonly versionMajor: number = VERSION.MAJOR;
+  /** 
+   * Version major (always 0 for vector fonts)
+   * 
+   * IMPORTANT: Vector fonts use version 0.0.0.1, not 1.0.2!
+   * C++ Reference: VectorFontHeader in FontDefine.h
+   */
+  public readonly versionMajor: number = VERSION.VECTOR.MAJOR;
   
-  /** Version minor (always 0) */
-  public readonly versionMinor: number = VERSION.MINOR;
+  /** Version minor (always 0 for vector fonts) */
+  public readonly versionMinor: number = VERSION.VECTOR.MINOR;
   
-  /** Version revision (always 2) */
-  public readonly versionRevision: number = VERSION.REVISION;
+  /** Version revision (always 0 for vector fonts) */
+  public readonly versionRevision: number = VERSION.VECTOR.REVISION;
   
-  /** Version build number (always 0) */
-  public readonly versionBuildnum: number = VERSION.BUILD;
+  /** Version build number (always 1 for vector fonts) */
+  public readonly versionBuildnum: number = VERSION.VECTOR.BUILD;
   
   /** Font size */
   public readonly fontSize: number;
@@ -158,8 +163,16 @@ export class VectorFontHeader {
    * Calculates the index area size based on index method
    * 
    * Index modes for vector fonts:
-   * 1. indexMethod=ADDRESS: 65536 × 4 bytes (file offsets)
+   * 1. indexMethod=ADDRESS: 65536 × 4 bytes (file offsets, NOT char indices!)
    * 2. indexMethod=OFFSET: N × 6 bytes (unicode + file offset)
+   * 
+   * CRITICAL: Vector fonts use file offsets (4 bytes) in address mode because
+   * glyph data sizes vary. Bitmap fonts use character indices (2 bytes) because
+   * all glyphs have the same size.
+   * 
+   * C++ Reference (fontDictionary_o.cpp line 694-701):
+   *   if (indexMethod == OFFSET) indexAreaSize = cstNum * (2 + 4)
+   *   else indexAreaSize = 65536 * 4
    * 
    * @param indexMethod - Index method (ADDRESS or OFFSET)
    * @param characterCount - Number of characters

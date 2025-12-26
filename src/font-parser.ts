@@ -297,9 +297,10 @@ export class FontParser {
    * Get glyph outline for a specific Unicode character
    * 
    * @param unicode - Unicode code point
+   * @param fontSize - Target font size in pixels (optional, for scaling)
    * @returns Glyph outline data or null if glyph not found
    */
-  getGlyphOutline(unicode: number): GlyphOutline | null {
+  getGlyphOutline(unicode: number, fontSize?: number): GlyphOutline | null {
     if (!this.font) {
       throw new FontConverterError(
         ErrorCode.INTERNAL_ERROR,
@@ -314,30 +315,41 @@ export class FontParser {
       return null;
     }
 
-    // Get bounding box
+    // Calculate scale factor if fontSize is provided
+    // C++ uses: stbtt_ScaleForPixelHeight = height / (ascent - descent)
+    let scale = 1.0;
+    if (fontSize !== undefined) {
+      const fheight = this.font.ascender - this.font.descender;
+      scale = fontSize / fheight;
+    }
+
+    // Get bounding box and apply scale
     const bbox = glyph.getBoundingBox();
     const boundingBox: BoundingBox = {
-      x1: Math.round(bbox.x1),
-      y1: Math.round(bbox.y1),
-      x2: Math.round(bbox.x2),
-      y2: Math.round(bbox.y2)
+      x1: Math.round(bbox.x1 * scale),
+      y1: Math.round(bbox.y1 * scale),
+      x2: Math.round(bbox.x2 * scale),
+      y2: Math.round(bbox.y2 * scale)
     };
 
-    // Extract contours from path
-    const contours = this.extractContours(glyph);
+    // Extract contours from path with scale
+    const contours = this.extractContours(glyph, scale);
 
     return {
       unicode,
       boundingBox,
-      advanceWidth: glyph.advanceWidth || 0,
+      advanceWidth: Math.round((glyph.advanceWidth || 0) * scale),
       contours
     };
   }
 
   /**
    * Extract contours from a glyph's path
+   * 
+   * @param glyph - OpenType glyph
+   * @param scale - Scale factor to apply to coordinates (default 1.0)
    */
-  private extractContours(glyph: opentype.Glyph): ContourPoint[][] {
+  private extractContours(glyph: opentype.Glyph, scale: number = 1.0): ContourPoint[][] {
     const path = glyph.path;
     const contours: ContourPoint[][] = [];
     let currentContour: ContourPoint[] = [];
@@ -349,16 +361,16 @@ export class FontParser {
             contours.push(currentContour);
           }
           currentContour = [{
-            x: Math.round(cmd.x),
-            y: Math.round(cmd.y),
+            x: Math.round(cmd.x * scale),
+            y: Math.round(cmd.y * scale),
             onCurve: true
           }];
           break;
 
         case 'L': // Line to
           currentContour.push({
-            x: Math.round(cmd.x),
-            y: Math.round(cmd.y),
+            x: Math.round(cmd.x * scale),
+            y: Math.round(cmd.y * scale),
             onCurve: true
           });
           break;
@@ -366,14 +378,14 @@ export class FontParser {
         case 'Q': // Quadratic curve
           // Add control point (off-curve)
           currentContour.push({
-            x: Math.round(cmd.x1),
-            y: Math.round(cmd.y1),
+            x: Math.round(cmd.x1 * scale),
+            y: Math.round(cmd.y1 * scale),
             onCurve: false
           });
           // Add end point (on-curve)
           currentContour.push({
-            x: Math.round(cmd.x),
-            y: Math.round(cmd.y),
+            x: Math.round(cmd.x * scale),
+            y: Math.round(cmd.y * scale),
             onCurve: true
           });
           break;
@@ -381,20 +393,20 @@ export class FontParser {
         case 'C': // Cubic curve (convert to quadratic approximation)
           // Add first control point
           currentContour.push({
-            x: Math.round(cmd.x1),
-            y: Math.round(cmd.y1),
+            x: Math.round(cmd.x1 * scale),
+            y: Math.round(cmd.y1 * scale),
             onCurve: false
           });
           // Add second control point
           currentContour.push({
-            x: Math.round(cmd.x2),
-            y: Math.round(cmd.y2),
+            x: Math.round(cmd.x2 * scale),
+            y: Math.round(cmd.y2 * scale),
             onCurve: false
           });
           // Add end point
           currentContour.push({
-            x: Math.round(cmd.x),
-            y: Math.round(cmd.y),
+            x: Math.round(cmd.x * scale),
+            y: Math.round(cmd.y * scale),
             onCurve: true
           });
           break;

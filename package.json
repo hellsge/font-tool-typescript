@@ -26,7 +26,6 @@
     "test:properties": "jest --testPathPattern='properties.test.ts$'",
     "test:integration": "jest --testPathPattern='integration.test.ts$|e2e.test.ts$'",
     "test:compatibility": "jest --testPathPattern='compatibility.test.ts$'",
-    "test:compat:r2": "npx ts-node tests/compatibility/quick-test-r2.ts",
     "test:compat:quick": "npx ts-node tests/compatibility/run-all.ts --quick",
     "test:compat:full": "npx ts-node tests/compatibility/run-all.ts",
     "test:compat:gen-cpp": "npx ts-node tests/compatibility/run-cpp.ts",

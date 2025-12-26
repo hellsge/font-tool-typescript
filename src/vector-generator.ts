@@ -124,6 +124,17 @@ export class VectorFontGenerator extends FontGenerator {
 
   /**
    * Extract all glyph outlines in the character set
+   * 
+   * IMPORTANT: Failed characters are recorded in this.failedCharacters
+   * but are NOT removed from this.characters. This ensures that the
+   * CST file will contain all requested characters, matching C++ behavior.
+   * 
+   * C++ Reference: GenerateVectorFont() in fontDictionary_o.cpp
+   * - CST is written before glyph extraction
+   * - Failed extractions go to NotSupportedChars.txt
+   * - But all requested characters stay in CST
+   * 
+   * Requirements: 1.1, 1.2
    */
   private async extractAllGlyphs(): Promise<void> {
     for (const unicode of this.characters) {
@@ -152,7 +163,9 @@ export class VectorFontGenerator extends FontGenerator {
       return null;
     }
 
-    // Get glyph outline from font parser
+    // Get glyph outline from font parser WITHOUT scaling
+    // C++ stores vector fonts in original font units (not scaled to pixel space)
+    // The fontSize is only stored in the header for reference
     const outline = this.fontParser.getGlyphOutline(unicode);
     
     if (!outline || outline.contours.length === 0) {
@@ -171,11 +184,22 @@ export class VectorFontGenerator extends FontGenerator {
   /**
    * Convert glyph outline to vector glyph data format
    * 
+   * IMPORTANT: C++ uses stbtt_GetGlyphBitmapBox which flips Y axis:
+   * - iy0 = floor(-y1)  (negate and swap)
+   * - iy1 = ceil(-y0)
+   * 
    * @param outline - Glyph outline from font parser
    * @returns Vector glyph data
    */
   private convertOutlineToVectorData(outline: GlyphOutline): VectorGlyphData {
     const { boundingBox, advanceWidth, contours } = outline;
+    
+    // Apply Y-axis flip to match C++ stbtt_GetGlyphBitmapBox behavior
+    // C++: iy0 = floor(-y1), iy1 = ceil(-y0)
+    const sx0 = Math.floor(boundingBox.x1);
+    const sy0 = Math.floor(-boundingBox.y2);  // Negate y2 (top)
+    const sx1 = Math.ceil(boundingBox.x2);
+    const sy1 = Math.ceil(-boundingBox.y1);   // Negate y1 (bottom)
     
     // Prepare winding data
     const windingCount = contours.length;
@@ -186,7 +210,7 @@ export class VectorFontGenerator extends FontGenerator {
     for (const contour of contours) {
       windingLengths.push(contour.length);
       
-      // Add all points from this contour
+      // Add all points from this contour (no Y flip for points - they stay in TrueType coords)
       for (const point of contour) {
         windings.push(point.x);
         windings.push(point.y);
@@ -194,10 +218,10 @@ export class VectorFontGenerator extends FontGenerator {
     }
     
     return {
-      sx0: boundingBox.x1,
-      sy0: boundingBox.y1,
-      sx1: boundingBox.x2,
-      sy1: boundingBox.y2,
+      sx0,
+      sy0,
+      sx1,
+      sy1,
       advance: advanceWidth,
       windingCount,
       windingLengths,
@@ -235,6 +259,8 @@ export class VectorFontGenerator extends FontGenerator {
    * Index modes for vector fonts:
    * 1. indexMethod=ADDRESS: 65536 × 4 bytes (file offsets)
    * 2. indexMethod=OFFSET: N × 6 bytes (unicode + file offset)
+   * 
+   * Vector fonts use file offsets (not character indices) because glyph data sizes vary.
    */
   private createIndexArray(): IndexEntry[] {
     const entries: IndexEntry[] = [];
@@ -246,10 +272,7 @@ export class VectorFontGenerator extends FontGenerator {
         entries.push({ unicode: i, offset: 0 });
       }
       
-      // Update entries for existing glyphs (offsets will be calculated during write)
-      for (const [unicode] of this.glyphs) {
-        entries[unicode].offset = 0; // Placeholder, will be updated during write
-      }
+      // Offsets will be calculated and updated during write
     } else {
       // Offset mode: N entries with unicode + file offset
       // Sort by unicode for consistent output
@@ -325,6 +348,8 @@ export class VectorFontGenerator extends FontGenerator {
 
   /**
    * Calculate the size of a glyph's data in bytes
+   * 
+   * IMPORTANT: C++ uses uint8 for winding_count and winding_lengths
    */
   private calculateGlyphDataSize(data: VectorGlyphData): number {
     let size = 0;
@@ -333,14 +358,18 @@ export class VectorFontGenerator extends FontGenerator {
     size += 2; // sx1 (int16)
     size += 2; // sy1 (int16)
     size += 2; // advance (uint16)
-    size += 2; // windingCount (uint16)
-    size += data.windingCount * 2; // windingLengths (uint16 each)
+    size += 1; // windingCount (uint8 - C++ compatibility)
+    size += data.windingCount * 1; // windingLengths (uint8 each - C++ compatibility)
     size += data.windings.length * 2; // points (int16 each)
     return size;
   }
 
   /**
    * Write the index array to the binary writer
+   * 
+   * Vector fonts use file offsets in both modes because glyph data sizes vary.
+   * 
+   * IMPORTANT: Unused entries must be 0xFFFFFFFF (not 0x00000000) for C++ compatibility
    */
   private writeIndexArray(
     writer: BinaryWriter,
@@ -348,9 +377,9 @@ export class VectorFontGenerator extends FontGenerator {
   ): void {
     if (this.config.indexMethod === IndexMethod.ADDRESS) {
       // Address mode: 65536 × 4 bytes (uint32 file offsets)
-      // Initially write placeholder values (0x00000000)
+      // Initially write 0xFFFFFFFF for unused entries (C++ compatibility)
       for (let i = 0; i < BINARY_FORMAT.MAX_INDEX_SIZE; i++) {
-        writer.writeUint32LE(0);
+        writer.writeUint32LE(0xFFFFFFFF);
       }
     } else {
       // Offset mode: N × 6 bytes (uint16 unicode + uint32 offset)
@@ -397,6 +426,8 @@ export class VectorFontGenerator extends FontGenerator {
 
   /**
    * Write glyph data fields to the binary writer
+   * 
+   * IMPORTANT: C++ uses uint8 for winding_count and winding_lengths (not uint16)
    */
   private writeGlyphDataFields(writer: BinaryWriter, data: VectorGlyphData): void {
     // Write bounding box (4 × int16)
@@ -408,12 +439,12 @@ export class VectorFontGenerator extends FontGenerator {
     // Write advance width (uint16)
     writer.writeUint16LE(data.advance);
     
-    // Write winding count (uint16)
-    writer.writeUint16LE(data.windingCount);
+    // Write winding count (uint8 - C++ compatibility)
+    writer.writeUint8(data.windingCount);
     
-    // Write winding lengths (uint16 each)
+    // Write winding lengths (uint8 each - C++ compatibility)
     for (const length of data.windingLengths) {
-      writer.writeUint16LE(length);
+      writer.writeUint8(length);
     }
     
     // Write all points (int16 each)

@@ -81,12 +81,22 @@ export class CharsetProcessor {
    * Write Unicode values to a .cst file
    *
    * Writes Unicode values as uint16_t values (2 bytes each, little-endian).
+   * 
+   * IMPORTANT: This function writes ALL provided Unicode values, regardless
+   * of whether they can be successfully rendered. This matches C++ behavior
+   * where the CST file contains all requested characters from the input
+   * character set.
+   * 
+   * C++ Reference: GenerateCstFile() in fontDictionary_o.cpp
+   * - Format: Direct sequence of uint16_t values (no header)
+   * - Contains all characters from ParseCodePage()
+   * - Failed renders go to NotSupportedChars.txt, but stay in CST
    *
    * @param filePath - Path to the output .cst file
-   * @param unicodes - Array of Unicode code points to write
+   * @param unicodes - Array of Unicode code points to write (ALL requested characters)
    * @throws FontConverterError if writing fails
    *
-   * Requirements: 4.7
+   * Requirements: 1.1, 1.4, 4.7
    */
   static writeCSTFile(filePath: string, unicodes: number[]): void {
     try {

@@ -9,6 +9,7 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
 import { FontConfig } from './types';
 import { FontParser, ParsedFont } from './font-parser';
 import { CharsetProcessor } from './charset-processor';
@@ -70,7 +71,13 @@ export abstract class FontGenerator {
   /**
    * Load and merge character sets from all sources
    * 
+   * This loads ALL requested characters from the configuration,
+   * which will later be written to the CST file regardless of
+   * whether they can be successfully rendered.
+   * 
    * @throws FontConverterError if character sets cannot be loaded
+   * 
+   * Requirements: 1.1
    */
   protected async loadCharacterSet(): Promise<void> {
     const basePath = PathUtils.dirname(this.config.fontPath);
@@ -100,13 +107,30 @@ export abstract class FontGenerator {
   /**
    * Write character set to .cst file
    * 
+   * IMPORTANT: This writes ALL requested characters (this.characters),
+   * not just successfully rendered ones. This matches C++ behavior where
+   * the CST file contains all characters from the input character set,
+   * regardless of whether they could be rendered successfully.
+   * 
+   * Failed characters are separately recorded in NotSupportedChars.txt.
+   * 
+   * C++ Reference: GenerateCstFile() in fontDictionary_o.cpp
+   * - CST is written BEFORE rendering
+   * - Contains all characters from ParseCodePage()
+   * - Failed renders go to NotSupportedChars.txt, but stay in CST
+   * 
    * @param baseName - Base name for the output file (without extension)
+   * 
+   * Requirements: 1.1, 1.4
    */
   protected async writeCharacterSetFile(baseName: string): Promise<void> {
     const cstPath = PathUtils.join(
       this.config.outputPath,
       baseName + FILE_NAMING.CST_EXTENSION
     );
+    
+    // Write ALL requested characters, including those that failed to render
+    // This ensures compatibility with C++ implementation
     CharsetProcessor.writeCSTFile(cstPath, this.characters);
   }
 
@@ -140,14 +164,28 @@ export abstract class FontGenerator {
   }
 
   /**
-   * Get the font family name (sanitized for filename use)
+   * Get the font name for use in output filenames
+   * 
+   * IMPORTANT: This must match C++ behavior for compatibility!
+   * C++ uses the font filename (without path and extension), not the internal font name.
+   * 
+   * Example:
+   *   Input:  "Font/NotoSans-Regular.ttf"
+   *   Output: "NotoSans_Regular"
+   * 
+   * C++ Reference: BitmapFontHeader constructor in FontDefine.h
+   * 
+   * @returns Font name derived from filename
    */
   protected getFontName(): string {
-    if (!this.parsedFont) {
-      return 'unknown';
-    }
-    // Remove characters that are invalid in filenames
-    return this.parsedFont.familyName.replace(/[<>:"/\\|?*]/g, '_');
+    // Use the font filename (without path and extension)
+    // This matches C++ behavior: font.erase(font.find("."))
+    const fontPath = this.config.fontPath;
+    const fileName = path.basename(fontPath, path.extname(fontPath));
+    
+    // Replace hyphens with underscores to match C++ output
+    // C++ output: "NotoSans_Regular_size16_bits4_bitmap.bin"
+    return fileName.replace(/-/g, '_');
   }
 
   /**

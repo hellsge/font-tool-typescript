@@ -32,3 +32,6 @@ export {
 // Export all from report-generator (preferred report functions)
 // Note: formatTestResultLine from report-generator takes a config parameter
 export * from './report-generator';
+
+// Export report analyzer
+export * from './report-analyzer';

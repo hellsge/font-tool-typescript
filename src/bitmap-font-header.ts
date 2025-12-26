@@ -68,14 +68,19 @@ export class BitmapFontHeader {
   /** File flag (always BITMAP = 1) */
   public readonly fileFlag: FileFlag = FileFlag.BITMAP;
   
-  /** Version major (always 1) */
-  public readonly versionMajor: number = VERSION.MAJOR;
+  /** 
+   * Version major (always 1 for bitmap fonts)
+   * 
+   * IMPORTANT: Bitmap fonts use version 1.0.2, Vector fonts use 0.0.0.1
+   * C++ Reference: BitmapFontHeader constructor in FontDefine.h
+   */
+  public readonly versionMajor: number = VERSION.BITMAP.MAJOR;
   
-  /** Version minor (always 0) */
-  public readonly versionMinor: number = VERSION.MINOR;
+  /** Version minor (always 0 for bitmap fonts) */
+  public readonly versionMinor: number = VERSION.BITMAP.MINOR;
   
-  /** Version revision (always 2) */
-  public readonly versionRevision: number = VERSION.REVISION;
+  /** Version revision (always 2 for bitmap fonts) */
+  public readonly versionRevision: number = VERSION.BITMAP.REVISION;
   
   /** Recalculated font size */
   public readonly size: number;
@@ -150,7 +155,15 @@ export class BitmapFontHeader {
    * Index modes:
    * 1. crop=true: 65536 × 4 bytes (file offsets)
    * 2. crop=false, indexMethod=ADDRESS: 65536 × 2 bytes (character indices)
-   * 3. crop=false, indexMethod=OFFSET: N × 4 bytes (unicode + char index)
+   * 3. crop=false, indexMethod=OFFSET: N × 2 bytes (unicode only, NO char index!)
+   * 
+   * C++ Reference (fontDictionary_o.cpp line 448-462):
+   *   addrSize = crop ? 4 : 2
+   *   if (indexMethod == OFFSET) indexAreaSize = cstNum * addrSize
+   *   else indexAreaSize = 65536 * addrSize
+   * 
+   * CRITICAL: Offset mode stores ONLY unicode (2 bytes), not unicode+index pairs!
+   * The character index is implicit from the array position.
    * 
    * @param indexMethod - Index method (ADDRESS or OFFSET)
    * @param crop - Crop flag
@@ -162,15 +175,14 @@ export class BitmapFontHeader {
     crop: boolean,
     characterCount: number
   ): number {
-    if (crop) {
-      // Crop mode: 65536 entries × 4 bytes (uint32 file offsets)
-      return BINARY_FORMAT.MAX_INDEX_SIZE * 4;
-    } else if (indexMethod === IndexMethod.ADDRESS) {
-      // Address mode: 65536 entries × 2 bytes (uint16 character indices)
-      return BINARY_FORMAT.MAX_INDEX_SIZE * 2;
+    const addrSize = crop ? 4 : 2;
+    
+    if (indexMethod === IndexMethod.OFFSET) {
+      // Offset mode: N entries × addrSize (just unicode values)
+      return characterCount * addrSize;
     } else {
-      // Offset mode: N entries × 4 bytes (uint16 unicode + uint16 char index)
-      return characterCount * 4;
+      // Address mode: 65536 entries × addrSize
+      return BINARY_FORMAT.MAX_INDEX_SIZE * addrSize;
     }
   }
 

@@ -161,6 +161,17 @@ export class BitmapFontGenerator extends FontGenerator {
 
   /**
    * Render all glyphs in the character set
+   * 
+   * IMPORTANT: Failed characters are recorded in this.failedCharacters
+   * but are NOT removed from this.characters. This ensures that the
+   * CST file will contain all requested characters, matching C++ behavior.
+   * 
+   * C++ Reference: GenerateBitmapFont() in fontDictionary_o.cpp
+   * - CST is written before rendering
+   * - Failed renders go to NotSupportedChars.txt
+   * - But all requested characters stay in CST
+   * 
+   * Requirements: 1.1, 1.2
    */
   private async renderAllGlyphs(): Promise<void> {
     for (const unicode of this.characters) {

@@ -61,15 +61,27 @@ export interface CppTestConfig {
 /**
  * Converts a character range string to customerVals format
  * 
+ * CRITICAL: C++ expects 'range' to be the CHARACTER COUNT, not the end value!
+ * 
+ * C++ code: for (int i = item.firstVal; i < item.firstVal + item.range; ++i)
+ * 
+ * Example:
+ *   Input: "0x0061-0x007A" (a-z)
+ *   Output: { firstVal: "0x0061", range: "0x1A" }  // 0x1A = 26 characters
+ * 
  * @param rangeStr - Range string like "0x0061-0x007A"
- * @returns customerVals array
+ * @returns customerVals array with correct character count
  */
 function convertCharacterRange(rangeStr: string): Array<{ firstVal: string; range: string }> {
   const match = rangeStr.match(/0x([0-9A-Fa-f]+)-0x([0-9A-Fa-f]+)/);
   if (match) {
+    const start = parseInt(match[1], 16);
+    const end = parseInt(match[2], 16);
+    const count = end - start + 1;  // Calculate character count (inclusive range)
+    
     return [{
       firstVal: `0x${match[1]}`,
-      range: `0x${match[2]}`
+      range: `0x${count.toString(16)}`  // Use character count, not end value!
     }];
   }
   return [];

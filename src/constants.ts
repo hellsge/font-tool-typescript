@@ -9,9 +9,31 @@ import { RenderMode, Rotation, IndexMethod } from './types';
 
 /**
  * Binary format version information
- * Must match C++ implementation version 1.0.2
+ * 
+ * IMPORTANT: Bitmap and Vector fonts use different version numbers!
+ * - Bitmap fonts: 1.0.2.0
+ * - Vector fonts: 0.0.0.1
+ * 
+ * C++ Reference: FontDefine.h
  */
 export const VERSION = {
+  /** Bitmap font version */
+  BITMAP: {
+    MAJOR: 1,
+    MINOR: 0,
+    REVISION: 2,
+    BUILD: 0,
+    STRING: '1.0.2'
+  },
+  /** Vector font version */
+  VECTOR: {
+    MAJOR: 0,
+    MINOR: 0,
+    REVISION: 0,
+    BUILD: 1,
+    STRING: '0.0.0.1'
+  },
+  // Legacy: for backward compatibility
   MAJOR: 1,
   MINOR: 0,
   REVISION: 2,
