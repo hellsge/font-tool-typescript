@@ -2,15 +2,15 @@
   "fonts": [
     {
       "fontPath": "../../../../font-tool-release/Font/NotoSans_Regular.ttf",
-      "outputPath": "../ts_output/bmp_crop_r2/",
-      "fontSize": 16,
+      "outputPath": "../ts_output/bmp_size19_r2/",
+      "fontSize": 19,
       "renderMode": 2,
       "bold": false,
       "italic": false,
       "rotation": 0,
       "gamma": 1.0,
       "indexMethod": 0,
-      "crop": true,
+      "crop": false,
       "outputFormat": "bitmap",
       "characterSets": [
         {

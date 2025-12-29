@@ -2,88 +2,98 @@
   "testCases": [
     {
       "name": "bmp_addr_r1",
-      "description": "Bitmap Address mode, 1-bit rendering",
+      "description": "Bitmap Address mode, 1-bit, 32px",
       "config": "bmp_addr_r1.json",
       "type": "bitmap",
       "renderMode": 1,
       "indexMethod": 0,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_addr_r2",
-      "description": "Bitmap Address mode, 2-bit rendering",
+      "description": "Bitmap Address mode, 2-bit, 32px",
       "config": "bmp_addr_r2.json",
       "type": "bitmap",
       "renderMode": 2,
       "indexMethod": 0,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_addr_r4",
-      "description": "Bitmap Address mode, 4-bit rendering",
+      "description": "Bitmap Address mode, 4-bit, 32px",
       "config": "bmp_addr_r4.json",
       "type": "bitmap",
       "renderMode": 4,
       "indexMethod": 0,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_addr_r8",
-      "description": "Bitmap Address mode, 8-bit rendering",
+      "description": "Bitmap Address mode, 8-bit, 32px",
       "config": "bmp_addr_r8.json",
       "type": "bitmap",
       "renderMode": 8,
       "indexMethod": 0,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_offset_r1",
-      "description": "Bitmap Offset mode, 1-bit rendering",
+      "description": "Bitmap Offset mode, 1-bit, 32px",
       "config": "bmp_offset_r1.json",
       "type": "bitmap",
       "renderMode": 1,
       "indexMethod": 1,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_offset_r2",
-      "description": "Bitmap Offset mode, 2-bit rendering",
+      "description": "Bitmap Offset mode, 2-bit, 32px",
       "config": "bmp_offset_r2.json",
       "type": "bitmap",
       "renderMode": 2,
       "indexMethod": 1,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_offset_r4",
-      "description": "Bitmap Offset mode, 4-bit rendering",
+      "description": "Bitmap Offset mode, 4-bit, 32px",
       "config": "bmp_offset_r4.json",
       "type": "bitmap",
       "renderMode": 4,
       "indexMethod": 1,
-      "crop": false
+      "fontSize": 32
     },
     {
       "name": "bmp_offset_r8",
-      "description": "Bitmap Offset mode, 8-bit rendering",
+      "description": "Bitmap Offset mode, 8-bit, 32px",
       "config": "bmp_offset_r8.json",
       "type": "bitmap",
       "renderMode": 8,
       "indexMethod": 1,
-      "crop": false
+      "fontSize": 32
     },
     {
-      "name": "bmp_crop_r2",
-      "description": "Bitmap Crop mode, 2-bit rendering",
-      "config": "bmp_crop_r2.json",
+      "name": "bmp_crop_r4",
+      "description": "Bitmap Crop mode, 4-bit, 32px",
+      "config": "bmp_crop_r4.json",
+      "type": "bitmap",
+      "renderMode": 4,
+      "indexMethod": 0,
+      "crop": true,
+      "fontSize": 32
+    },
+    {
+      "name": "bmp_size19_r2",
+      "description": "Bitmap Address mode, 2-bit, 19px (字号验证)",
+      "config": "bmp_size19_r2.json",
       "type": "bitmap",
       "renderMode": 2,
       "indexMethod": 0,
-      "crop": true
+      "fontSize": 19
     },
     {
       "name": "vec_addr",
-      "description": "Vector Address mode, 32pt font",
+      "description": "Vector Address mode, 32px",
       "config": "vec_addr.json",
       "type": "vector",
       "indexMethod": 0,
@@ -91,14 +101,14 @@
     },
     {
       "name": "vec_offset",
-      "description": "Vector Offset mode, 32pt font",
+      "description": "Vector Offset mode, 32px",
       "config": "vec_offset.json",
       "type": "vector",
       "indexMethod": 1,
       "fontSize": 32
     }
   ],
-  "quickTests": ["bmp_addr_r4", "vec_addr"],
+  "quickTests": ["bmp_addr_r4", "bmp_crop_r4", "vec_addr"],
   "characterSet": {
     "description": "26 lowercase letters (a-z)",
     "range": "0x0061-0x007A",

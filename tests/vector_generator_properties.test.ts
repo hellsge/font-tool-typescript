@@ -28,9 +28,13 @@ const testFontExists = fs.existsSync(TEST_FONT_PATH);
 
 /**
  * Arbitrary generator for a small character set (for faster tests)
+ * 
+ * IMPORTANT: Excludes space (0x0020) as the first character to ensure
+ * at least one character with actual glyph outline is included.
+ * Space character has no contours in vector fonts.
  */
 const smallCharsetArbitrary = fc.array(
-  fc.integer({ min: 0x0020, max: 0x007F }), // ASCII printable characters
+  fc.integer({ min: 0x0021, max: 0x007F }), // ASCII printable characters (excluding space)
   { minLength: 5, maxLength: 20 }
 ).map(chars => [...new Set(chars)].sort((a, b) => a - b));
 
@@ -113,14 +117,14 @@ function readVectorGlyphFromFile(
   // Read advance width (uint16)
   const advance = buffer.readUInt16LE(pos); pos += 2;
   
-  // Read winding count (uint16)
-  const windingCount = buffer.readUInt16LE(pos); pos += 2;
+  // Read winding count (uint8 - C++ compatibility)
+  const windingCount = buffer.readUInt8(pos); pos += 1;
   
-  // Read winding lengths (uint16 each)
+  // Read winding lengths (uint8 each - C++ compatibility)
   const windingLengths: number[] = [];
   for (let i = 0; i < windingCount; i++) {
-    windingLengths.push(buffer.readUInt16LE(pos));
-    pos += 2;
+    windingLengths.push(buffer.readUInt8(pos));
+    pos += 1;
   }
   
   // Read points (int16 x, int16 y)
@@ -233,7 +237,8 @@ describe('Feature: typescript-font-converter, Property 10: Vector Font 包含完
             const indexStart = header.length;
             const glyphOffsets: Map<number, number> = new Map();
             
-            if (config.indexMethod === IndexMethod.ADDRESS) {
+            // Use header.indexMethod (from actual file) instead of config.indexMethod
+            if (header.indexMethod === IndexMethod.ADDRESS) {
               // Address mode: 65536 × 4 bytes
               for (const unicode of characters) {
                 const offset = buffer.readUInt32LE(indexStart + unicode * 4);

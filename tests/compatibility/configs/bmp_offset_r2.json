@@ -3,7 +3,7 @@
     {
       "fontPath": "../../../../font-tool-release/Font/NotoSans_Regular.ttf",
       "outputPath": "../ts_output/bmp_offset_r2/",
-      "fontSize": 16,
+      "fontSize": 32,
       "renderMode": 2,
       "bold": false,
       "italic": false,
