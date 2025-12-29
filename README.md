@@ -2,14 +2,6 @@
 
 嵌入式字体转换工具，将 TrueType 字体转换为优化的 binary 格式，与 C++ 实现 (v1.0.2) 字节级兼容。
 
-## 特性
-
-- Bitmap (1/2/4/8-bit) 和 Vector 字体
-- 多种字符编码：CodePage、Unicode range、自定义字符集
-- 文本效果：粗体、斜体、旋转、gamma 校正
-- 索引方式：Address mode (快速查找) / Offset mode (节省空间)
-- 跨平台：Windows、macOS、Linux
-
 ## 安装
 
 ```bash
@@ -17,14 +9,51 @@ npm install
 npm run build
 ```
 
-## 快速开始
+---
+
+## CLI 使用
 
 ```bash
-font-converter config.json
-font-converter config.json --size 24 --bold --output ./output
+font-converter <config.json> [options]
 ```
 
-## 配置示例
+### 参数
+
+| 参数 | 说明 |
+|------|------|
+| `<config>` | JSON 配置文件路径 (必需) |
+
+### 选项
+
+| 选项 | 说明 | 示例 |
+|------|------|------|
+| `-s, --size <n>` | 覆盖字号 | `--size 24` |
+| `-b, --bold` | 启用粗体 | |
+| `--no-bold` | 禁用粗体 | |
+| `-i, --italic` | 启用斜体 | |
+| `--no-italic` | 禁用斜体 | |
+| `-m, --render-mode <n>` | 位深度 (1/2/4/8) | `-m 4` |
+| `-o, --output <path>` | 输出目录 | `-o ./out` |
+| `-r, --rotation <n>` | 旋转 (0/1/2/3) | `-r 1` |
+| `-v, --version` | 版本号 | |
+| `-h, --help` | 帮助 | |
+
+### 示例
+
+```bash
+# 基本使用
+font-converter config.json
+
+# 覆盖参数
+font-converter config.json --size 24 --bold -m 4 -o ./output
+
+# 查看帮助
+font-converter --help
+```
+
+---
+
+## 配置文件
 
 ```json
 {
@@ -36,6 +65,11 @@ font-converter config.json --size 24 --bold --output ./output
     "outputFormat": "bitmap",
     "indexMethod": 0,
     "crop": false,
+    "bold": false,
+    "italic": false,
+    "rotation": 0,
+    "gamma": 1.0,
+    "rvd": false,
     "characterSets": [
       { "type": "range", "value": "0x0020-0x007F" }
     ]
@@ -43,29 +77,66 @@ font-converter config.json --size 24 --bold --output ./output
 }
 ```
 
-## 配置参数
+### 字段说明
 
-| 参数 | 说明 | 值 |
-|------|------|-----|
-| `fontPath` | 字体文件路径 | .ttf / .ttc |
-| `outputPath` | 输出目录 | |
-| `fontSize` | 字体大小 (px) | |
-| `outputFormat` | 输出格式 | `bitmap` / `vector` |
-| `renderMode` | 位深度 (bitmap) | 1, 2, 4, 8 |
-| `indexMethod` | 索引方式 | 0=Address, 1=Offset |
-| `crop` | 裁剪空白 | boolean (仅 indexMethod=0) |
-| `bold` / `italic` | 粗体/斜体 | boolean |
-| `rotation` | 旋转角度 | 0, 90, 180, 270 |
-| `gamma` | Gamma 校正 | 默认 1.0 |
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `fontPath` | string | ✓ | 字体文件 (.ttf/.ttc) |
+| `outputPath` | string | ✓ | 输出目录 |
+| `fontSize` | number | ✓ | 字号 (px) |
+| `outputFormat` | string | ✓ | `"bitmap"` / `"vector"` |
+| `renderMode` | number | ✓ | 位深度: 1, 2, 4, 8 (bitmap only) |
+| `indexMethod` | number | ✓ | 0=Address, 1=Offset |
+| `crop` | boolean | | 裁剪空白 (仅 indexMethod=0) |
+| `bold` | boolean | | 粗体 |
+| `italic` | boolean | | 斜体 |
+| `rotation` | number | | 0=0°, 1=90°, 2=270°, 3=180° |
+| `gamma` | number | | Gamma 校正，默认 1.0 |
+| `rvd` | boolean | | Render Vector Data 模式 |
+| `characterSets` | array | ✓ | 字符集定义 |
 
 ### 字符集类型
 
 ```json
-{ "type": "file", "value": "charset/basic.cst" }
-{ "type": "codepage", "value": "CodePage/CP936" }
+// Unicode 范围
 { "type": "range", "value": "0x0020-0x007F" }
+
+// 字符集文件 (.cst)
+{ "type": "file", "value": "charset/basic.cst" }
+
+// CodePage 目录
+{ "type": "codepage", "value": "CodePage/CP936" }
+
+// 直接字符串
 { "type": "string", "value": "Hello 你好" }
 ```
+
+### indexMethod 说明
+
+| 值 | 模式 | Index 大小 | 适用场景 |
+|----|------|-----------|----------|
+| 0 | Address | 128KB (固定) | 快速查找，Unicode 直接寻址 |
+| 1 | Offset | 2B × 字符数 | 节省空间，顺序存储 |
+
+### rvd 模式说明
+
+| rvd | 行为 | 公式 |
+|-----|------|------|
+| false (默认) | 缩小字号适应 backSize | `scaledFontSize = fontSize × unitsPerEM / (asc - desc)` |
+| true | 原始字号渲染 | `backSize = fontSize × (asc - desc) / unitsPerEM` |
+
+---
+
+## 输出文件
+
+| 格式 | 文件名模式 |
+|------|-----------|
+| Bitmap | `[fontName]_size[N]_bits[M]_bitmap.bin` |
+| Vector | `[fontName]_vector.bin` |
+| 字符集 | `[fontName].cst` |
+| 失败字符 | `NotSupportedChars.txt` |
+
+---
 
 ## API 使用
 
@@ -78,32 +149,40 @@ const generator = new BitmapFontGenerator({
   fontSize: 16,
   renderMode: RenderMode.BIT_4,
   outputFormat: 'bitmap',
+  indexMethod: 0,
+  crop: false,
+  bold: false,
+  italic: false,
+  rotation: 0,
+  gamma: 1.0,
   characterSets: [{ type: 'range', value: '0x0020-0x007F' }]
 });
 
 await generator.generate();
 ```
 
-## 输出文件
-
-- Bitmap: `[fontName]_size[size]_bits[mode]_bitmap.bin`
-- Vector: `[fontName]_vector.bin`
-- 字符集: `.cst` 文件
-- 失败字符: `NotSupportedChars.txt`
+---
 
 ## 开发
 
 ```bash
 npm run build      # 构建
-npm test           # 测试
+npm test           # 单元测试
 npm run lint       # 代码检查
 ```
+
+### 兼容性测试
+
+```bash
+cd tests/compatibility
+npx ts-node run-all.ts           # 完整测试
+npx ts-node run-all.ts --quick   # 快速测试
+npx ts-node compare.ts           # 对比结果
+```
+
+---
 
 ## 相关项目
 
 - [C++ Implementation](../font-tool-source/)
 - [Python Implementation](../font-tool-python/)
-
-## License
-
-MIT
