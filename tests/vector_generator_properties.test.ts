@@ -237,7 +237,7 @@ describe('Feature: typescript-font-converter, Property 10: Vector Font 包含完
               // Address mode: 65536 × 4 bytes
               for (const unicode of characters) {
                 const offset = buffer.readUInt32LE(indexStart + unicode * 4);
-                if (offset !== 0) {
+                if (offset !== 0xFFFFFFFF && offset !== 0) {
                   glyphOffsets.set(unicode, offset);
                 }
               }
@@ -424,7 +424,7 @@ describe('Feature: typescript-font-converter, Property 10: Vector Font 包含完
       const indexStart = header.length;
       const offset = buffer.readUInt32LE(indexStart + 0x0020 * 4);
       
-      if (offset !== 0) {
+      if (offset !== 0xFFFFFFFF && offset !== 0) {
         // Space glyph exists, verify it has valid structure
         const glyph = readVectorGlyphFromFile(binPath, offset);
         

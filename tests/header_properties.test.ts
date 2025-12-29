@@ -80,7 +80,7 @@ describe('Feature: typescript-font-converter, Property 13: Binary Format 版本�
     );
   });
 
-  it('should always produce version 1.0.2 for vector font headers', () => {
+  it('should always produce version 0.0.0 for vector font headers', () => {
     fc.assert(
       fc.property(
         vectorFontHeaderConfigArbitrary,
@@ -93,9 +93,9 @@ describe('Feature: typescript-font-converter, Property 13: Binary Format 版本�
           const versionMinor = bytes[3];
           const versionRevision = bytes[4];
           
-          expect(versionMajor).toBe(VERSION.MAJOR);
-          expect(versionMinor).toBe(VERSION.MINOR);
-          expect(versionRevision).toBe(VERSION.REVISION);
+          expect(versionMajor).toBe(VERSION.VECTOR.MAJOR);
+          expect(versionMinor).toBe(VERSION.VECTOR.MINOR);
+          expect(versionRevision).toBe(VERSION.VECTOR.REVISION);
         }
       ),
       { numRuns: 100 }

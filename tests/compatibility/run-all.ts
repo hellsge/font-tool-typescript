@@ -50,7 +50,7 @@ import {
 /**
  * Quick test cases (for fast validation)
  */
-const QUICK_TEST_CASES = ['bitmap_r4', 'vector_basic'];
+const QUICK_TEST_CASES = ['bmp_addr_r4', 'vec_addr'];
 
 /**
  * Parse command line arguments

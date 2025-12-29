@@ -32,6 +32,17 @@ export interface FontConfig {
   crop: boolean;
   characterSets: CharacterSetSource[];
   outputFormat: 'bitmap' | 'vector';
+  /**
+   * Render Vector Data mode (--rvd flag)
+   * 
+   * When true: Render at original fontSize, backSize is calculated
+   *   backSize = fontSize * (ascender - descender) / unitsPerEM
+   * 
+   * When false (default): Shrink fontSize to fit in backSize
+   *   backSize = fontSize (config value)
+   *   scaledFontSize = fontSize * unitsPerEM / (ascender - descender)
+   */
+  rvd?: boolean;
 }
 
 /**

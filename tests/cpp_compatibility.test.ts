@@ -367,10 +367,10 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
 
       const header = parseVectorHeader(path.join(testOutputDir, binFile!));
 
-      // Verify version is 1.0.2
-      expect(header.versionMajor).toBe(1);
+      // Verify version is 0.0.0 for vector fonts
+      expect(header.versionMajor).toBe(0);
       expect(header.versionMinor).toBe(0);
-      expect(header.versionRevision).toBe(2);
+      expect(header.versionRevision).toBe(0);
 
       // Verify file flag is 2 for vector
       expect(header.fileFlag).toBe(2);
@@ -586,18 +586,17 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));
 
-      // Verify index array size (N * 4 bytes)
-      expect(header.indexAreaSize).toBe(24); // 6 characters * 4 bytes
+      // Verify index array size (N * 2 bytes, unicode only)
+      expect(header.indexAreaSize).toBe(12); // 6 characters * 2 bytes
 
-      // Read index entries
+      // Read index entries (offset mode: unicode only, 2 bytes each)
       const indexStart = header.headerEndOffset;
-      const entries: Array<{ unicode: number; charIndex: number }> = [];
+      const entries: Array<{ unicode: number }> = [];
 
       for (let i = 0; i < 6; i++) {
-        const offset = indexStart + i * 4;
+        const offset = indexStart + i * 2;
         const unicode = buffer.readUInt16LE(offset);
-        const charIndex = buffer.readUInt16LE(offset + 2);
-        entries.push({ unicode, charIndex });
+        entries.push({ unicode });
       }
 
       // Verify entries are sorted by unicode

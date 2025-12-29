@@ -293,8 +293,8 @@ describeIfFontExists('Feature: typescript-font-converter, Property 16: Index Arr
             // Read indexAreaSize from header (at offset 9, 4 bytes, little-endian)
             const indexAreaSize = data.readInt32LE(9);
             
-            // For OFFSET mode: N × 4 bytes (unicode + char index)
-            expect(indexAreaSize).toBe(glyphCount * 4);
+            // For OFFSET mode: N × 2 bytes (unicode only, char index is implicit)
+            expect(indexAreaSize).toBe(glyphCount * 2);
             
             generator.cleanup();
           } finally {

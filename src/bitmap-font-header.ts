@@ -41,6 +41,9 @@ export interface BitmapFontHeaderConfig {
   
   /** Number of characters in the font */
   characterCount: number;
+  
+  /** RVD flag (render at original size) */
+  rvd?: boolean;
 }
 
 /**
@@ -97,8 +100,8 @@ export class BitmapFontHeader {
   /** Italic flag */
   public readonly italic: boolean;
   
-  /** Reserved flag (always false) */
-  public readonly rvd: boolean = false;
+  /** Reserved flag (rvd mode) */
+  public readonly rvd: boolean;
   
   /** Index method */
   public readonly indexMethod: IndexMethod;
@@ -134,6 +137,7 @@ export class BitmapFontHeader {
     this.renderMode = config.renderMode;
     this.bold = config.bold;
     this.italic = config.italic;
+    this.rvd = config.rvd || false;
     this.indexMethod = config.indexMethod;
     this.crop = config.crop;
     
@@ -282,7 +286,8 @@ export class BitmapFontHeader {
     } else if (indexMethod === IndexMethod.ADDRESS) {
       characterCount = 0; // Will be determined from actual data
     } else {
-      characterCount = indexAreaSize / 4;
+      // Offset mode: each entry is 2 bytes (unicode only)
+      characterCount = indexAreaSize / 2;
     }
     
     return new BitmapFontHeader({

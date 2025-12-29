@@ -26,14 +26,12 @@ import {
   validateIndex,
   formatIndexValidationResult
 } from './index-validator';
-/*
 import {
   compareGlyphs,
   GlyphComparisonConfig,
   DEFAULT_GLYPH_CONFIG,
   formatGlyphComparisonResult
 } from './glyph-analyzer';
-*/
 
 // Re-export types from comparator for convenience
 export { ComparisonResult, ComparisonDetail, ComparisonStatus } from './comparator';
@@ -63,7 +61,7 @@ export interface TestRunnerOptions {
   /** Reports output directory */
   reportsDir?: string;
   /** Glyph comparison configuration */
-  glyphConfig?: any; // GlyphComparisonConfig;
+  glyphConfig?: GlyphComparisonConfig;
   /** Verbose output */
   verbose?: boolean;
   /** Progress callback */
@@ -198,7 +196,7 @@ export function runTestCase(
   const baseDir = options?.baseDir || __dirname;
   const cppReferenceDir = options?.cppReferenceDir || path.resolve(baseDir, RUNNER_DEFAULT_PATHS.CPP_REFERENCE_DIR);
   const tsOutputDir = options?.tsOutputDir || path.resolve(baseDir, RUNNER_DEFAULT_PATHS.TS_OUTPUT_DIR);
-  const glyphConfig = options?.glyphConfig || {}; // DEFAULT_GLYPH_CONFIG;
+  const glyphConfig = options?.glyphConfig || DEFAULT_GLYPH_CONFIG;
   const verbose = options?.verbose || false;
   
   const cppDir = path.join(cppReferenceDir, testCase);
@@ -328,8 +326,6 @@ export function runTestCase(
       }
       
       // Compare glyphs (only for bitmap fonts)
-      // TODO: Fix glyph comparison - currently disabled due to missing functions
-      /*
       try {
         if (headerResult.cppHeader && headerResult.tsHeader) {
           const glyphResult = compareGlyphs(
@@ -373,7 +369,6 @@ export function runTestCase(
           message: `Glyph comparison error for ${fontFile.name}: ${glyphError instanceof Error ? glyphError.message : String(glyphError)}`
         });
       }
-      */
     }
   }
   
