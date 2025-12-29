@@ -350,50 +350,135 @@ export class BitmapFontGenerator extends FontGenerator {
     // Handle cropping or padding
     let cropInfo: CropInfo | undefined;
     
-    if (this.config.crop) {
-      // Crop whitespace
-      const cropResult = ImageProcessor.cropCharacter(pixels, width, height);
-      pixels = cropResult.pixels;
-      cropInfo = cropResult.cropInfo;
-      width = cropInfo.validWidth;
-      height = cropInfo.validHeight;
+    // Both crop and non-crop modes need to render to canvas with baseline alignment first
+    // C++ calculation:
+    // rows = backSize (fontSize)
+    // cols = backSize * (2 + italic) / 2
+    // Then align to 8-pixel boundaries based on rotation
+    
+    let targetRows = backSize;
+    let targetCols = Math.floor(backSize * (2 + (this.config.italic ? 1 : 0)) / 2);
+    
+    // Align dimensions based on rotation (matching C++ AdjustDimensionsForScanModeAndRotation)
+    if (this.config.rotation === Rotation.ROTATE_90 || 
+        this.config.rotation === Rotation.ROTATE_270) {
+      targetRows = targetRows % 8 ? (Math.floor(targetRows / 8) + 1) * 8 : targetRows;
     } else {
-      // Non-crop mode: Pad to full canvas size (matching C++ behavior)
-      // C++ calculation:
-      // rows = backSize (fontSize)
-      // cols = backSize * (2 + italic) / 2
-      // Then align to 8-pixel boundaries based on rotation
+      targetCols = targetCols % 8 ? (Math.floor(targetCols / 8) + 1) * 8 : targetCols;
+    }
+    
+    const targetWidth = targetCols;
+    const targetHeight = targetRows;
+    
+    // Calculate baseline position for proper vertical alignment (C++ compatibility)
+    // C++ formula: baseline_height = ascender * backSize / (ascender - descender)
+    const ascender = font.ascender;
+    const descender = font.descender;
+    const baselineHeight = Math.round(Math.abs(ascender) * backSize / (ascender - descender));
+    
+    // Calculate glyph position on canvas using baseline alignment
+    // C++ logic:
+    //   pos.x = slot->left (clamped to canvas bounds)
+    //   pos.y = baseline_height - slot->top + rows (bottom of glyph)
+    // Then renders: r = pos.y - (rows - i), meaning from pos.y upward
+    
+    // slotLeft and slotTop are already calculated above
+    // slotTop = bbox.y2 * scale = distance from baseline to glyph top
+    // slotLeft = bbox.x1 * scale = left bearing
+    
+    // Calculate draw position
+    let drawX = slotLeft;
+    if (drawX < 0) {
+      drawX = 0;
+    } else if (drawX + width > targetWidth) {
+      drawX = targetWidth - width;
+    }
+    
+    // pos.y in C++ is the bottom of the glyph bitmap
+    let posY = baselineHeight - slotTop + height;
+    if (baselineHeight - slotTop < 0) {
+      posY = height;
+    } else if (posY > targetHeight) {
+      posY = targetHeight;
+    }
+    
+    // Create new canvas and copy glyph with baseline alignment
+    const canvas = new Uint8Array(targetWidth * targetHeight);
+    
+    // C++ renders from pos.y upward: r = pos.y - (rows - i)
+    // This means: for glyph row i (0 = top), canvas row = pos.y - rows + i
+    // Which is: canvas row = pos.y - height + i
+    for (let i = 0; i < height; i++) {
+      const canvasY = posY - height + i;
+      if (canvasY < 0 || canvasY >= targetHeight) continue;
       
-      let targetRows = backSize;
-      let targetCols = Math.floor(backSize * (2 + (this.config.italic ? 1 : 0)) / 2);
-      
-      // Align dimensions based on rotation (matching C++ AdjustDimensionsForScanModeAndRotation)
-      if (this.config.rotation === Rotation.ROTATE_90 || 
-          this.config.rotation === Rotation.ROTATE_270) {
-        targetRows = targetRows % 8 ? (Math.floor(targetRows / 8) + 1) * 8 : targetRows;
-      } else {
-        targetCols = targetCols % 8 ? (Math.floor(targetCols / 8) + 1) * 8 : targetCols;
+      for (let j = 0; j < width; j++) {
+        const canvasX = drawX + j;
+        if (canvasX < 0 || canvasX >= targetWidth) continue;
+        
+        // Source pixel (glyph bitmap is in normal orientation, top-to-bottom)
+        // But opentype.js renders Y-up, so we need to flip
+        const srcY = height - 1 - i;
+        canvas[canvasY * targetWidth + canvasX] = pixels[srcY * width + j];
       }
+    }
+    
+    pixels = canvas;
+    width = targetWidth;
+    height = targetHeight;
+    
+    if (this.config.crop) {
+      // C++ crop: only remove top empty rows
+      // validWidth = pos.x (drawX + originalBitmapWidth)
+      // validHeight = pos.y (already calculated above)
+      // Then find zeroRowsCount (top empty rows)
       
-      const targetWidth = targetCols;
-      const targetHeight = targetRows;
+      const cropValidWidth = Math.min(drawX + originalBitmapWidth, width);
+      const cropValidHeight = Math.min(posY, height);
       
-      // Create new canvas and copy glyph
-      // C++ uses: r = pos.y - (rows - i), which flips Y axis
-      // We need to flip Y when copying to canvas
-      const canvas = new Uint8Array(targetWidth * targetHeight);
-      
-      for (let y = 0; y < Math.min(height, targetHeight); y++) {
-        for (let x = 0; x < Math.min(width, targetWidth); x++) {
-          // Flip Y axis: read from bottom to top
-          const srcY = height - 1 - y;
-          canvas[y * targetWidth + x] = pixels[srcY * width + x];
+      // Find top skip (first non-zero row within valid area)
+      let topSkip = 0;
+      let foundTop = false;
+      for (let y = 0; y < cropValidHeight && !foundTop; y++) {
+        for (let x = 0; x < cropValidWidth; x++) {
+          if (pixels[y * width + x] > 0) {
+            topSkip = y;
+            foundTop = true;
+            break;
+          }
         }
       }
       
-      pixels = canvas;
-      width = targetWidth;
-      height = targetHeight;
+      // C++ keeps all rows from topSkip to cropValidHeight
+      const croppedHeight = foundTop ? (cropValidHeight - topSkip) : 0;
+      
+      if (croppedHeight > 0 && cropValidWidth > 0) {
+        const cropped = new Uint8Array(cropValidWidth * croppedHeight);
+        for (let y = 0; y < croppedHeight; y++) {
+          for (let x = 0; x < cropValidWidth; x++) {
+            cropped[y * cropValidWidth + x] = pixels[(y + topSkip) * width + x];
+          }
+        }
+        pixels = cropped;
+        width = cropValidWidth;
+        height = croppedHeight;
+        cropInfo = {
+          topSkip,
+          leftSkip: 0,
+          validWidth: cropValidWidth,
+          validHeight: croppedHeight
+        };
+      } else {
+        pixels = new Uint8Array(0);
+        width = 0;
+        height = 0;
+        cropInfo = {
+          topSkip: cropValidHeight,
+          leftSkip: 0,
+          validWidth: 0,
+          validHeight: 0
+        };
+      }
     }
 
     // Pack pixels according to render mode
@@ -404,19 +489,13 @@ export class BitmapFontGenerator extends FontGenerator {
       this.config.renderMode
     );
 
-    // Calculate C++ compatible header values
-    // C++ formula: baseline_height = ascender * backSize / (ascender - descender)
-    const ascender = font.ascender;
-    const descender = font.descender;
-    const baselineHeight = Math.round(Math.abs(ascender) * backSize / (ascender - descender));
-    
     // C++ calculation uses ORIGINAL bitmap dimensions (before padding):
     // pos.x = slot->left + cols (bitmap.width)
     // pos.y = baseline_height - slot->top + rows (bitmap.rows)
     // posO.x = 0 (typically)
     // posO.y = baseline_height
     const posX = slotLeft + originalBitmapWidth;  // Character width position
-    const posY = baselineHeight - slotTop + originalBitmapRows;  // Character height position
+    const posYHeader = baselineHeight - slotTop + originalBitmapRows;  // Character height position
     const posOX = 0;  // X offset (typically 0)
     const posOY = baselineHeight;  // Y offset (baseline)
 
@@ -430,7 +509,7 @@ export class BitmapFontGenerator extends FontGenerator {
       xOffset: Math.max(0, Math.min(255, posOX)),
       yOffset: Math.max(0, Math.min(255, posOY)),
       charWidth: Math.max(0, Math.min(255, posX)),
-      charHeight: Math.max(0, Math.min(255, posY))
+      charHeight: Math.max(0, Math.min(255, posYHeader))
     };
   }
 
@@ -887,11 +966,12 @@ export class BitmapFontGenerator extends FontGenerator {
       
       // Write glyph header (4 bytes)
       if (this.config.crop && glyph.cropInfo) {
-        // Crop mode: [topSkip, leftSkip, validWidth, validHeight]
+        // Crop mode: [topSkip, yOffset, charWidth, charHeight]
+        // C++ keeps cPos[1-3] same as non-crop, only cPos[0] becomes zeroRowsCount
         writer.writeUint8(glyph.cropInfo.topSkip);
-        writer.writeUint8(glyph.cropInfo.leftSkip);
-        writer.writeUint8(glyph.cropInfo.validWidth);
-        writer.writeUint8(glyph.cropInfo.validHeight);
+        writer.writeUint8(glyph.yOffset);
+        writer.writeUint8(glyph.charWidth);
+        writer.writeUint8(glyph.charHeight);
       } else {
         // Non-crop mode: [xOffset, yOffset, charWidth, charHeight]
         writer.writeUint8(glyph.xOffset);
