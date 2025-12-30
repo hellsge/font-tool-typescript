@@ -73,7 +73,7 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
   });
 
   it('should return non-zero exit code for invalid parameter combination', async () => {
-    const fontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+    const fontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
     // Create config with crop=true and indexMethod=1 (invalid combination)
     const config = {
@@ -145,7 +145,7 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
   });
 
   it('should return non-zero exit code for invalid fontSize', async () => {
-    const fontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+    const fontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
     // Create config with invalid fontSize
     const config = {
@@ -182,7 +182,7 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
   });
 
   it('should return non-zero exit code for empty character sets', async () => {
-    const fontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+    const fontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
     // Create config with empty character sets
     const config = {

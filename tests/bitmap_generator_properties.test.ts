@@ -19,7 +19,7 @@ import { FontConfig, RenderMode, IndexMethod, Rotation } from '../src/types';
 import { BINARY_FORMAT, FILE_NAMING } from '../src/constants';
 
 // Path to test font file
-const TEST_FONT_PATH = path.resolve(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+const TEST_FONT_PATH = path.resolve(__dirname, '../Font/NotoSans_Regular.ttf');
 
 // Check if test font exists
 const fontExists = fs.existsSync(TEST_FONT_PATH);

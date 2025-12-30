@@ -14,7 +14,7 @@ import { CharsetProcessor } from '../src/charset-processor';
 /**
  * Test font path
  */
-const TEST_FONT_PATH = path.resolve(process.cwd(), '../font-tool-release/Font/NotoSans_Regular.ttf');
+const TEST_FONT_PATH = path.resolve(process.cwd(), 'Font/NotoSans_Regular.ttf');
 
 /**
  * Check if test font exists

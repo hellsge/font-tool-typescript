@@ -19,6 +19,7 @@ import {
 } from './errors';
 import { BINARY_FORMAT, VALIDATION_LIMITS } from './constants';
 import { PathUtils } from './path-utils';
+import { CodePageParser } from './codepage-parser';
 
 /**
  * Character Set Processor class
@@ -243,13 +244,17 @@ export class CharsetProcessor {
           break;
 
         case 'codepage':
-          // CodePage processing will be implemented separately
-          // For now, throw an error indicating it's not yet supported
-          throw new FontConverterError(
-            ErrorCode.CODEPAGE_NOT_FOUND,
-            `CodePage processing not yet implemented: ${source.value}`,
-            { details: source.value }
-          );
+          // Resolve CodePage file path
+          const cpPath = CodePageParser.resolveCodePagePath(source.value, basePath);
+          if (!cpPath) {
+            throw new FontConverterError(
+              ErrorCode.CODEPAGE_NOT_FOUND,
+              `CodePage not found: ${source.value} (searched from ${basePath})`,
+              { details: source.value }
+            );
+          }
+          chars = CodePageParser.parseNlsFile(cpPath);
+          break;
 
         default:
           throw new FontConverterError(

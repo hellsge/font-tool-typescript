@@ -171,14 +171,13 @@ npm test           # 单元测试
 npm run lint       # 代码检查
 ```
 
-### 兼容性测试
+### 兼容性测试 (TS vs C++)
 
 ```bash
-cd tests/compatibility
-npx ts-node run-all.ts           # 完整测试
-npx ts-node run-all.ts --quick   # 快速测试
-npx ts-node compare.ts           # 对比结果
+npx ts-node tests/compatibility/run-all.ts
 ```
+
+> 需要 `../font-tool-release/fontDictionary.exe`，快速模式加 `--quick`
 
 ---
 

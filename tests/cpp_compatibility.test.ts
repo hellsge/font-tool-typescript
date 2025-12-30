@@ -17,8 +17,8 @@ import * as fc from 'fast-check';
 
 describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++ 兼容', () => {
   const testOutputDir = path.join(__dirname, '../test-output/cpp-compat');
-  const cppOutputDir = path.join(__dirname, '../../font-tool-release/output');
-  const testFontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+  const cppOutputDir = path.join(__dirname, '../output');
+  const testFontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
   beforeAll(() => {
     // Create test output directory

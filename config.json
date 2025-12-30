@@ -1,23 +1,21 @@
 {
   "fonts": [
     {
-      "fontPath": "../font-tool-release/Font/NotoSans_Regular.ttf",
+      "fontPath": "./Font/no_overlap/NotoSansSC_Regular.ttf",
       "outputPath": "./output/",
       "fontSize": 32,
-      "renderMode": 2,
+      "renderMode": 4,
       "bold": false,
       "italic": false,
       "rotation": 0,
       "gamma": 1.0,
-      "indexMethod": 1,
-      "crop": false,
+      "indexMethod": 0,
+      "crop": true,
       "rvd": false,
       "outputFormat": "bitmap",
       "characterSets": [
-        {
-          "type": "range",
-          "value": "0x0020-0x007E"
-        }
+        {"type": "range", "value": "0x0020-0x007E"},
+        {"type": "codepage", "value": "CP936"}
       ]
     }
   ]

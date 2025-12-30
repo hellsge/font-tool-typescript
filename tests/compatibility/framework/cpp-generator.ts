@@ -83,16 +83,16 @@ export interface CppToolInfo {
  * Default paths relative to the compatibility test directory
  */
 export const DEFAULT_PATHS = {
-  /** Path to font-tool-release directory */
-  RELEASE_DIR: '../../../../font-tool-release',
-  /** Path to fontDictionary.exe */
+  /** Path to font-tool-typescript root directory */
+  RELEASE_DIR: '../..',
+  /** Path to fontDictionary.exe (in font-tool-release, still needed for C++ comparison) */
   EXE_PATH: '../../../../font-tool-release/fontDictionary.exe',
   /** Path to Font directory */
-  FONT_DIR: '../../../../font-tool-release/Font',
+  FONT_DIR: '../../Font',
   /** Path to charset directory */
-  CHARSET_DIR: '../../../../font-tool-release/charset',
+  CHARSET_DIR: '../../charset',
   /** Path to CodePage directory */
-  CODEPAGE_DIR: '../../../../font-tool-release/CodePage',
+  CODEPAGE_DIR: '../../CodePage',
   /** Output directory for C++ reference */
   CPP_REFERENCE_DIR: '../cpp_reference',
   /** Configs directory */

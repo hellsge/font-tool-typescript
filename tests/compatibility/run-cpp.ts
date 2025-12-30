@@ -107,6 +107,7 @@ async function main(): Promise<void> {
   if (!toolInfo.exists) {
     console.error('Error: C++ fontDictionary.exe not found!');
     console.error('Please ensure font-tool-release directory contains fontDictionary.exe');
+    console.error('Note: C++ tool is only needed for compatibility comparison tests');
     process.exit(1);
   }
   

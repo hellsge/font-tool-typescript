@@ -29,6 +29,9 @@ export { VectorFontHeader, VectorFontHeaderConfig } from './vector-font-header';
 // Export charset processor
 export * from './charset-processor';
 
+// Export codepage parser
+export * from './codepage-parser';
+
 // Export font parser
 export * from './font-parser';
 

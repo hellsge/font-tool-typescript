@@ -1,7 +1,7 @@
 {
   "fonts": [
     {
-      "fontPath": "../../../../font-tool-release/Font/NotoSans_Regular.ttf",
+      "fontPath": "../../Font/NotoSans_Regular.ttf",
       "outputPath": "../ts_output/vec_addr/",
       "fontSize": 32,
       "outputFormat": "vector",

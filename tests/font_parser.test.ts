@@ -10,8 +10,8 @@ import * as fs from 'fs';
 import { FontParser, loadFont, extractFontMetrics } from '../src/font-parser';
 import { ErrorCode, FontConverterError } from '../src/errors';
 
-// Path to test fonts (using fonts from font-tool-release)
-const TEST_FONT_DIR = path.resolve(__dirname, '../../font-tool-release/Font');
+// Path to test fonts (using fonts from Font directory)
+const TEST_FONT_DIR = path.resolve(__dirname, '../Font');
 const NOTO_SANS_PATH = path.join(TEST_FONT_DIR, 'NotoSans_Regular.ttf');
 const NOTO_SANS_SC_PATH = path.join(TEST_FONT_DIR, 'NotoSansSC_Regular.ttf');
 

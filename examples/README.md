@@ -131,7 +131,7 @@ rotation=90
 ```json
 {
   "type": "file",
-  "value": "../font-tool-release/charset/GB2312.cst"
+  "value": "../charset/GB2312.cst"
 }
 ```
 
@@ -139,7 +139,7 @@ rotation=90
 ```json
 {
   "type": "codepage",
-  "value": "../font-tool-release/CodePage/CP936"
+  "value": "../CodePage/CP936"
 }
 ```
 
@@ -167,7 +167,7 @@ rotation=90
 ## 故障排除
 
 ### 字体文件路径
-示例使用相对路径指向 `font-tool-release` 目录。如果字体文件找不到，请调整路径：
+示例使用相对路径指向本地 `Font` 目录。如果字体文件找不到，请调整路径：
 
 ```json
 {

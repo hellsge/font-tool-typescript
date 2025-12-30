@@ -1,7 +1,7 @@
 {
   "fonts": [
     {
-      "fontPath": "../font-tool-release/Font/NotoSansSC_Regular.ttf",
+      "fontPath": "../Font/NotoSansSC_Regular.ttf",
       "outputPath": "./output/chinese/",
       "fontSize": 24,
       "renderMode": 8,
@@ -15,7 +15,7 @@
       "characterSets": [
         {
           "type": "file",
-          "value": "../font-tool-release/charset/GB2312-8K.cst"
+          "value": "../charset/GB2312-8K.cst"
         },
         {
           "type": "string",

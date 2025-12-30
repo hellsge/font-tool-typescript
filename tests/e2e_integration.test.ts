@@ -14,7 +14,7 @@ import { ConfigManager } from '../src/config';
 
 describe('E2E Integration Tests', () => {
   const testOutputDir = path.join(__dirname, '../test-output/e2e');
-  const testFontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+  const testFontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
   beforeAll(() => {
     // Create test output directory

@@ -1,7 +1,7 @@
 {
   "fonts": [
     {
-      "fontPath": "../font-tool-release/Font/NotoSans_Regular.ttf",
+      "fontPath": "../Font/NotoSans_Regular.ttf",
       "outputPath": "./output/latin/",
       "fontSize": 16,
       "renderMode": 4,
@@ -24,7 +24,7 @@
       ]
     },
     {
-      "fontPath": "../font-tool-release/Font/NotoSansSC_Regular.ttf",
+      "fontPath": "../Font/NotoSansSC_Regular.ttf",
       "outputPath": "./output/chinese/",
       "fontSize": 24,
       "renderMode": 8,
@@ -43,7 +43,7 @@
       ]
     },
     {
-      "fontPath": "../font-tool-release/Font/NotoSansJP_Regular.ttf",
+      "fontPath": "../Font/NotoSansJP_Regular.ttf",
       "outputPath": "./output/japanese/",
       "fontSize": 20,
       "outputFormat": "vector",

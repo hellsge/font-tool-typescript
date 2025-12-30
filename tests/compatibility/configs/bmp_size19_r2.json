@@ -1,7 +1,7 @@
 {
   "fonts": [
     {
-      "fontPath": "../../../../font-tool-release/Font/NotoSans_Regular.ttf",
+      "fontPath": "../../Font/NotoSans_Regular.ttf",
       "outputPath": "../ts_output/bmp_size19_r2/",
       "fontSize": 19,
       "renderMode": 2,

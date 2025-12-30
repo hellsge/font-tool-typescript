@@ -69,8 +69,8 @@ export const TS_DEFAULT_PATHS = {
   TS_ROOT: '../../..',
   /** Path to font-converter CLI */
   CLI_PATH: '../../../bin/font-converter.js',
-  /** Path to font-tool-release directory */
-  RELEASE_DIR: '../../../../font-tool-release',
+  /** Path to font-tool-typescript root directory */
+  RELEASE_DIR: '../..',
   /** Output directory for TypeScript test output */
   TS_OUTPUT_DIR: '../ts_output',
   /** Configs directory */

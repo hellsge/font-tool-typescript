@@ -14,7 +14,7 @@ import { main } from '../src/main';
 
 describe('Performance Tests', () => {
   const testOutputDir = path.join(__dirname, '../test-output/performance');
-  const testFontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+  const testFontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
   beforeAll(() => {
     // Create test output directory

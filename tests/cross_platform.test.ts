@@ -18,7 +18,7 @@ import * as fc from 'fast-check';
 
 describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输出一致性', () => {
   const testOutputDir = path.join(__dirname, '../test-output/cross-platform');
-  const testFontPath = path.join(__dirname, '../../font-tool-release/Font/NotoSans_Regular.ttf');
+  const testFontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
 
   beforeAll(() => {
     // Create test output directory
