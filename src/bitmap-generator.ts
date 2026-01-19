@@ -796,12 +796,14 @@ export class BitmapFontGenerator extends FontGenerator {
         entries.push({ unicode: i, value: BINARY_FORMAT.UNUSED_INDEX_32 });
       }
       
-      // Update entries for ALL requested characters (including failed ones)
-      // This matches C++ behavior where failed characters still get index entries
+      // Update entries for successfully rendered characters only
+      // Failed characters keep UNUSED_INDEX_32 (0xFFFFFFFF)
       let charIndex = 0;
       for (const unicode of this.characters) {
-        entries[unicode].value = charIndex; // Temporary: store char index
-        charIndex++;
+        if (this.glyphs.has(unicode)) {
+          entries[unicode].value = charIndex; // Temporary: store char index
+          charIndex++;
+        }
       }
     } else if (this.config.indexMethod === IndexMethod.ADDRESS) {
       // Address mode: 65536 entries with character indices
@@ -809,19 +811,24 @@ export class BitmapFontGenerator extends FontGenerator {
         entries.push({ unicode: i, value: BINARY_FORMAT.UNUSED_INDEX_16 });
       }
       
-      // Update entries for ALL requested characters (including failed ones)
-      // This matches C++ behavior where failed characters still get index entries
+      // Update entries for successfully rendered characters only
+      // Failed characters keep UNUSED_INDEX_16 (0xFFFF)
       let charIndex = 0;
       for (const unicode of this.characters) {
-        entries[unicode].value = charIndex;
-        charIndex++;
+        if (this.glyphs.has(unicode)) {
+          entries[unicode].value = charIndex;
+          charIndex++;
+        }
       }
     } else {
       // Offset mode: N entries with unicode + char index
+      // Only include successfully rendered characters
       let charIndex = 0;
       for (const unicode of this.characters) {
-        entries.push({ unicode, value: charIndex });
-        charIndex++;
+        if (this.glyphs.has(unicode)) {
+          entries.push({ unicode, value: charIndex });
+          charIndex++;
+        }
       }
     }
     
