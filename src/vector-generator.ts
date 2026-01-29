@@ -9,12 +9,14 @@
  */
 
 import * as fs from 'fs';
+import * as polygonClipping from 'polygon-clipping';
+import { Polygon, MultiPolygon, Ring } from 'polygon-clipping';
 import { FontGenerator } from './font-generator';
 import { FontConfig, IndexMethod } from './types';
 import { VectorGlyphData } from './types/binary';
 import { VectorFontHeader, VectorFontHeaderConfig } from './vector-font-header';
 import { BinaryWriter } from './binary-writer';
-import { GlyphOutline } from './font-parser';
+import { GlyphOutline, ContourPoint } from './font-parser';
 import {
   BINARY_FORMAT,
   FILE_NAMING
@@ -188,6 +190,11 @@ export class VectorFontGenerator extends FontGenerator {
    * - iy0 = floor(-y1)  (negate and swap)
    * - iy1 = ceil(-y0)
    * 
+   * Process:
+   * 1. Flatten Bezier curves to line segments
+   * 2. Remove overlapping contours (for fonts with overlapping outlines)
+   * 3. Convert to binary format
+   * 
    * @param outline - Glyph outline from font parser
    * @returns Vector glyph data
    */
@@ -201,16 +208,22 @@ export class VectorFontGenerator extends FontGenerator {
     const sx1 = Math.ceil(boundingBox.x2);
     const sy1 = Math.ceil(-boundingBox.y1);   // Negate y1 (bottom)
     
+    // Step 1: Flatten curves to line segments
+    const flattenedContours = contours.map(contour => this.flattenContour(contour));
+    
+    // Step 2: Remove overlaps
+    const processedContours = this.removeContourOverlaps(flattenedContours);
+    
     // Prepare winding data
-    const windingCount = contours.length;
+    const windingCount = processedContours.length;
     const windingLengths: number[] = [];
     const windings: number[] = [];
     
     // Process each contour (winding)
-    for (const contour of contours) {
+    for (const contour of processedContours) {
       windingLengths.push(contour.length);
       
-      // Add all points from this contour (no Y flip for points - they stay in TrueType coords)
+      // Add all points from this contour
       for (const point of contour) {
         windings.push(point.x);
         windings.push(point.y);
@@ -227,6 +240,261 @@ export class VectorFontGenerator extends FontGenerator {
       windingLengths,
       windings
     };
+  }
+  
+  /**
+   * Flatten a contour with Bezier curves to line segments
+   * 
+   * @param contour - Contour with on-curve and off-curve points
+   * @returns Flattened contour with only line segment endpoints
+   */
+  private flattenContour(contour: ContourPoint[]): Array<{x: number, y: number}> {
+    if (contour.length < 2) {
+      return contour.map(p => ({ x: p.x, y: p.y }));
+    }
+    
+    const result: Array<{x: number, y: number}> = [];
+    let i = 0;
+    
+    while (i < contour.length) {
+      const current = contour[i];
+      
+      if (current.onCurve) {
+        result.push({ x: current.x, y: current.y });
+        i++;
+      } else {
+        // Off-curve point - need to find curve segment
+        // Look back for start point
+        const startIdx = result.length > 0 ? result.length - 1 : 0;
+        const start = result.length > 0 
+          ? result[startIdx] 
+          : { x: contour[contour.length - 1].x, y: contour[contour.length - 1].y };
+        
+        // Collect consecutive off-curve points
+        const controlPoints: Array<{x: number, y: number}> = [];
+        while (i < contour.length && !contour[i].onCurve) {
+          controlPoints.push({ x: contour[i].x, y: contour[i].y });
+          i++;
+        }
+        
+        // Find end point
+        const end = i < contour.length 
+          ? { x: contour[i].x, y: contour[i].y }
+          : { x: contour[0].x, y: contour[0].y };
+        
+        // Flatten the curve(s)
+        if (controlPoints.length === 1) {
+          // Quadratic Bezier
+          this.flattenQuadratic(start, controlPoints[0], end, result);
+        } else if (controlPoints.length === 2) {
+          // Cubic Bezier
+          this.flattenCubic(start, controlPoints[0], controlPoints[1], end, result);
+        } else {
+          // Multiple control points - split into quadratics with implied on-curve points
+          let currentStart = start;
+          for (let j = 0; j < controlPoints.length - 1; j++) {
+            const cp = controlPoints[j];
+            const nextCp = controlPoints[j + 1];
+            const impliedEnd = {
+              x: Math.round((cp.x + nextCp.x) / 2),
+              y: Math.round((cp.y + nextCp.y) / 2)
+            };
+            this.flattenQuadratic(currentStart, cp, impliedEnd, result);
+            currentStart = impliedEnd;
+          }
+          // Last segment
+          this.flattenQuadratic(currentStart, controlPoints[controlPoints.length - 1], end, result);
+        }
+        
+        // Add end point if on-curve
+        if (i < contour.length && contour[i].onCurve) {
+          result.push(end);
+          i++;
+        }
+      }
+    }
+    
+    // Remove duplicate consecutive points
+    return this.removeDuplicatePoints(result);
+  }
+  
+  /**
+   * Flatten quadratic Bezier curve
+   */
+  private flattenQuadratic(
+    p0: {x: number, y: number},
+    p1: {x: number, y: number},
+    p2: {x: number, y: number},
+    result: Array<{x: number, y: number}>,
+    tolerance: number = 1.0
+  ): void {
+    // Check if flat enough
+    const dx = p2.x - p0.x;
+    const dy = p2.y - p0.y;
+    const d = Math.abs((p1.x - p0.x) * dy - (p1.y - p0.y) * dx) / Math.sqrt(dx * dx + dy * dy + 0.0001);
+    
+    if (d <= tolerance) {
+      return; // Flat enough, end point will be added by caller
+    }
+    
+    // Subdivide at t=0.5
+    const mid01 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+    const mid12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    const mid = { x: (mid01.x + mid12.x) / 2, y: (mid01.y + mid12.y) / 2 };
+    
+    this.flattenQuadratic(p0, mid01, mid, result, tolerance);
+    result.push({ x: Math.round(mid.x), y: Math.round(mid.y) });
+    this.flattenQuadratic(mid, mid12, p2, result, tolerance);
+  }
+  
+  /**
+   * Flatten cubic Bezier curve
+   */
+  private flattenCubic(
+    p0: {x: number, y: number},
+    p1: {x: number, y: number},
+    p2: {x: number, y: number},
+    p3: {x: number, y: number},
+    result: Array<{x: number, y: number}>,
+    tolerance: number = 1.0
+  ): void {
+    // Check if flat enough
+    const dx = p3.x - p0.x;
+    const dy = p3.y - p0.y;
+    const len = Math.sqrt(dx * dx + dy * dy + 0.0001);
+    const d1 = Math.abs((p1.x - p0.x) * dy - (p1.y - p0.y) * dx) / len;
+    const d2 = Math.abs((p2.x - p0.x) * dy - (p2.y - p0.y) * dx) / len;
+    
+    if (Math.max(d1, d2) <= tolerance) {
+      return; // Flat enough
+    }
+    
+    // Subdivide at t=0.5 using de Casteljau
+    const mid01 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+    const mid12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    const mid23 = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 };
+    const mid012 = { x: (mid01.x + mid12.x) / 2, y: (mid01.y + mid12.y) / 2 };
+    const mid123 = { x: (mid12.x + mid23.x) / 2, y: (mid12.y + mid23.y) / 2 };
+    const mid = { x: (mid012.x + mid123.x) / 2, y: (mid012.y + mid123.y) / 2 };
+    
+    this.flattenCubic(p0, mid01, mid012, mid, result, tolerance);
+    result.push({ x: Math.round(mid.x), y: Math.round(mid.y) });
+    this.flattenCubic(mid, mid123, mid23, p3, result, tolerance);
+  }
+  
+  /**
+   * Remove duplicate consecutive points
+   */
+  private removeDuplicatePoints(points: Array<{x: number, y: number}>): Array<{x: number, y: number}> {
+    if (points.length < 2) return points;
+    
+    const result: Array<{x: number, y: number}> = [points[0]];
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].x !== points[i - 1].x || points[i].y !== points[i - 1].y) {
+        result.push(points[i]);
+      }
+    }
+    return result;
+  }
+  
+  /**
+   * Remove overlapping contours using polygon union operation
+   * 
+   * Only outer contours (same winding direction) are merged.
+   * Inner contours (holes, opposite winding) are preserved.
+   * 
+   * Note: Font contour direction convention:
+   * - CW (negative area) = outer contour
+   * - CCW (positive area) = inner contour (hole)
+   * 
+   * @param contours - Array of flattened contours
+   * @returns Non-overlapping contours
+   */
+  private removeContourOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<Array<{x: number, y: number}>> {
+    // Filter out invalid contours
+    const validContours = contours.filter(c => c.length >= 3);
+    
+    if (validContours.length <= 1) {
+      return validContours;
+    }
+    
+    // Calculate signed area to distinguish outer/inner contours
+    // CW (negative area) = outer contour
+    // CCW (positive area) = inner contour (hole)
+    const contoursWithArea = validContours.map(contour => ({
+      contour,
+      area: this.calculateSignedArea(contour)
+    }));
+    
+    // Separate outer (CW, area < 0) and inner (CCW, area >= 0) contours
+    const cwContours = contoursWithArea.filter(c => c.area < 0).map(c => c.contour);
+    const ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
+    
+    // Only union CW contours (outer contours)
+    let processedCW = cwContours;
+    
+    if (cwContours.length > 1) {
+      try {
+        // Convert to polygon-clipping format
+        // polygon-clipping expects CCW for outer contours, so we reverse
+        const polygons: Polygon[] = cwContours.map(contour => {
+          const reversed = [...contour].reverse();
+          const ring: Ring = reversed.map(p => [p.x, p.y] as [number, number]);
+          // Close the ring
+          if (ring.length > 0) {
+            const first = ring[0];
+            const last = ring[ring.length - 1];
+            if (first[0] !== last[0] || first[1] !== last[1]) {
+              ring.push([first[0], first[1]]);
+            }
+          }
+          return [ring];
+        });
+        
+        // Perform union operation
+        const [first, ...rest] = polygons;
+        const result: MultiPolygon = rest.length > 0 
+          ? polygonClipping.union(first, ...rest)
+          : [first];
+        
+        // Convert back
+        processedCW = [];
+        for (const polygon of result) {
+          // Only take outer ring (first ring), ignore holes from union
+          const ring = polygon[0];
+          // Remove closing point and reverse back to CW
+          let points = ring.slice(0, -1).map(([x, y]) => ({
+            x: Math.round(x),
+            y: Math.round(y)
+          }));
+          points = points.reverse(); // Back to CW
+          if (points.length >= 3) {
+            processedCW.push(points);
+          }
+        }
+      } catch (error) {
+        console.warn('removeContourOverlaps failed:', error);
+        // Keep original CW contours on failure
+      }
+    }
+    
+    // Combine processed outer contours with original inner contours (holes)
+    return [...processedCW, ...ccwContours];
+  }
+  
+  /**
+   * Calculate signed area of a polygon (shoelace formula)
+   * Positive = counter-clockwise, Negative = clockwise
+   */
+  private calculateSignedArea(points: Array<{x: number, y: number}>): number {
+    if (points.length < 3) return 0;
+    let area = 0;
+    for (let i = 0; i < points.length; i++) {
+      const j = (i + 1) % points.length;
+      area += points[i].x * points[j].y;
+      area -= points[j].x * points[i].y;
+    }
+    return area / 2;
   }
 
   /**
