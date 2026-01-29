@@ -402,6 +402,7 @@ export class VectorFontGenerator extends FontGenerator {
    * 
    * Only outer contours (same winding direction) are merged.
    * Inner contours (holes, opposite winding) are preserved.
+   * Union also produces new holes when contours overlap.
    * 
    * Note: Font contour direction convention:
    * - CW (negative area) = outer contour
@@ -428,10 +429,10 @@ export class VectorFontGenerator extends FontGenerator {
     
     // Separate outer (CW, area < 0) and inner (CCW, area >= 0) contours
     const cwContours = contoursWithArea.filter(c => c.area < 0).map(c => c.contour);
-    const ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
+    let ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
     
-    // Only union CW contours (outer contours)
-    let processedCW = cwContours;
+    // Union CW contours (polygon-clipping preserves non-intersecting polygons)
+    let processedCW: Array<Array<{x: number, y: number}>> = cwContours;
     
     if (cwContours.length > 1) {
       try {
@@ -460,16 +461,24 @@ export class VectorFontGenerator extends FontGenerator {
         // Convert back
         processedCW = [];
         for (const polygon of result) {
-          // Only take outer ring (first ring), ignore holes from union
-          const ring = polygon[0];
-          // Remove closing point and reverse back to CW
-          let points = ring.slice(0, -1).map(([x, y]) => ({
-            x: Math.round(x),
-            y: Math.round(y)
-          }));
-          points = points.reverse(); // Back to CW
-          if (points.length >= 3) {
-            processedCW.push(points);
+          // Process all rings in the polygon
+          for (let ringIdx = 0; ringIdx < polygon.length; ringIdx++) {
+            const ring = polygon[ringIdx];
+            let points = ring.slice(0, -1).map(([x, y]) => ({
+              x: Math.round(x),
+              y: Math.round(y)
+            }));
+            
+            if (points.length >= 3) {
+              if (ringIdx === 0) {
+                // Outer ring - reverse back to CW
+                points = points.reverse();
+                processedCW.push(points);
+              } else {
+                // Hole produced by union - add to CCW contours
+                ccwContours.push(points);
+              }
+            }
           }
         }
       } catch (error) {
@@ -478,7 +487,7 @@ export class VectorFontGenerator extends FontGenerator {
       }
     }
     
-    // Combine processed outer contours with original inner contours (holes)
+    // Combine processed outer contours with all holes
     return [...processedCW, ...ccwContours];
   }
   

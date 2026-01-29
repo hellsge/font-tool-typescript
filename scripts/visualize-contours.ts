@@ -181,7 +181,7 @@ function flattenQuadratic(
   flattenQuadratic(mid, mid12, p2, result, tolerance);
 }
 
-// 去重叠 - 对同方向的轮廓做 union，保留不同方向的轮廓（孔洞）
+// 去重叠 - 只对实际相交的轮廓做 union，保留孔洞
 function removeOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<Array<{x: number, y: number}>> {
   const valid = contours.filter(c => c.length >= 3);
   if (valid.length <= 1) return valid;
@@ -194,14 +194,14 @@ function removeOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<A
   
   // CW (area < 0) 是外轮廓，CCW (area > 0) 是孔洞
   const cwContours = contoursWithArea.filter(c => c.area < 0).map(c => c.contour);
-  const ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
+  let ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
   
-  // 只对 CW 轮廓（外轮廓）做 union
-  let processedCW = cwContours;
+  // 对 CW 轮廓做 union（polygon-clipping 会保留不相交的多边形）
+  let processedCW: Array<Array<{x: number, y: number}>> = cwContours;
   
   if (cwContours.length > 1) {
     try {
-      // 转换为 CCW 给 polygon-clipping（它期望 CCW 外轮廓）
+      // 转换为 CCW 给 polygon-clipping
       const polygons: Polygon[] = cwContours.map(contour => {
         const reversed = [...contour].reverse();
         const ring: Ring = reversed.map(p => [p.x, p.y] as [number, number]);
@@ -222,16 +222,25 @@ function removeOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<A
       
       processedCW = [];
       for (const polygon of result) {
-        // 只取外轮廓（第一个环），忽略 union 产生的孔洞
-        const ring = polygon[0];
-        let points = ring.slice(0, -1).map(([x, y]) => ({
-          x: Math.round(x),
-          y: Math.round(y)
-        }));
-        // 转回 CW
-        points = points.reverse();
-        if (points.length >= 3) {
-          processedCW.push(points);
+        // 处理每个多边形的所有环
+        for (let ringIdx = 0; ringIdx < polygon.length; ringIdx++) {
+          const ring = polygon[ringIdx];
+          let points = ring.slice(0, -1).map(([x, y]) => ({
+            x: Math.round(x),
+            y: Math.round(y)
+          }));
+          
+          if (points.length >= 3) {
+            if (ringIdx === 0) {
+              // 外轮廓，转回 CW
+              points = points.reverse();
+              processedCW.push(points);
+            } else {
+              // union 产生的孔洞（已经是 CW，需要保持）
+              // polygon-clipping 输出的孔洞是 CW，但我们需要 CCW
+              ccwContours.push(points);
+            }
+          }
         }
       }
     } catch (e) {
@@ -239,7 +248,7 @@ function removeOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<A
     }
   }
   
-  // 合并处理后的外轮廓和原始孔洞
+  // 合并处理后的外轮廓和所有孔洞
   return [...processedCW, ...ccwContours];
 }
 // 计算有符号面积（shoelace formula）
@@ -256,7 +265,25 @@ function signedArea(points: Array<{x: number, y: number}>): number {
 }
 
 async function main() {
-  const testChars = ['f', 'H', 'e', 'y', 'G', 'U', 'I', 'o', 'n'];
+  console.log('Starting...');
+  const testChars = [
+    // 滕王阁序最后的诗
+    '滕', '王', '高', '阁', '临', '江', '渚',
+    '佩', '玉', '鸣', '鸾', '罢', '歌', '舞',
+    '画', '栋', '朝', '飞', '南', '浦', '云',
+    '珠', '帘', '暮', '卷', '西', '山', '雨',
+    '闲', '潭', '影', '日', '悠',
+    '物', '换', '星', '移', '几', '度', '秋',
+    '槛', '中', '帝', '子', '今', '何', '在',
+    '外', '长', '空', '自', '流',
+    // 字母
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    // 数字
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+  ];
   const fontSize = 100;
   const imageWidth = 120;
   const imageHeight = 120;
