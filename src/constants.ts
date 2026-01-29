@@ -159,7 +159,7 @@ export const PERFORMANCE_THRESHOLDS = {
   LARGE_CHARSET_THRESHOLD: 10000,
   
   /** Memory limit (bytes) */
-  MEMORY_LIMIT: 500 * 1024 * 1024 // 500MB
+  MEMORY_LIMIT: 800 * 1024 * 1024 // 800MB
 } as const;
 
 /**

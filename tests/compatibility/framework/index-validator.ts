@@ -131,10 +131,10 @@ export function validateIndex(
  * 
  * Address mode structure:
  * - 65536 entries (one for each possible unicode value 0x0000-0xFFFF)
- * - Each entry is 2 bytes (uint16) for non-crop mode
- * - Each entry is 4 bytes (uint32) for crop mode (file offsets)
+ * - Bitmap non-crop: Each entry is 2 bytes (uint16) containing character index
+ * - Bitmap crop: Each entry is 4 bytes (uint32) containing file offset
+ * - Vector: Each entry is 4 bytes (uint32) containing file offset
  * - Unused entries are filled with 0xFFFF (16-bit) or 0xFFFFFFFF (32-bit)
- * - Used entries contain character index (0, 1, 2, ...) or file offset
  * 
  * Requirements: 4.2, 4.3
  */
@@ -148,10 +148,16 @@ function validateAddressMode(
   const warnings: string[] = [];
   const mappings = new Map<number, number>();
   
-  // Determine entry size based on crop mode
-  const isCropMode = isBitmapHeader(header) && header.crop;
-  const entrySize = isCropMode ? 4 : 2;
-  const unusedMarker = isCropMode ? CONSTANTS.UNUSED_32 : CONSTANTS.UNUSED_16;
+  // Determine entry size:
+  // - Bitmap non-crop: 2 bytes (character index)
+  // - Bitmap crop: 4 bytes (file offset)
+  // - Vector: 4 bytes (file offset)
+  const isBitmap = isBitmapHeader(header);
+  const isCropMode = isBitmap && header.crop;
+  const isVector = isVectorHeader(header);
+  const uses4ByteEntries = isCropMode || isVector;
+  const entrySize = uses4ByteEntries ? 4 : 2;
+  const unusedMarker = uses4ByteEntries ? CONSTANTS.UNUSED_32 : CONSTANTS.UNUSED_16;
   const expectedEntries = CONSTANTS.MAX_INDEX_SIZE;
   const expectedIndexSize = expectedEntries * entrySize;
   
@@ -226,8 +232,9 @@ function validateAddressMode(
     }
   }
   
-  // Validate character indices are sequential (for non-crop mode)
-  if (!isCropMode) {
+  // Validate character indices are sequential (only for bitmap non-crop mode)
+  // Vector and crop modes store file offsets, not sequential indices
+  if (isBitmap && !isCropMode) {
     const indices = Array.from(mappings.values()).sort((a, b) => a - b);
     for (let i = 0; i < indices.length; i++) {
       if (indices[i] !== i) {
