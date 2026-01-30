@@ -1,5 +1,22 @@
 # 更新日志
 
+## [1.0.4] - 2025-01-30
+
+### 移除
+- 矢量字体去重叠功能：JS 多边形库（polygon-clipping、martinez、clipper2）均无法正确处理字体轮廓重叠
+
+### 技术说明
+去重叠失败原因：
+1. JS 库操作展平后的线段，丢失贝塞尔曲线精度
+2. 填充规则不匹配：库假设 non-zero，HoneyGUI 使用 even-odd
+3. 数值精度问题导致孔洞/边界错误
+
+解决方案：使用 fonttools 预处理字体文件
+```bash
+fonttools subset input.ttf --output-file=output.ttf --unicodes="*" --overlaps-backend=pathops --remove-overlaps
+```
+fonttools 使用 Skia pathops 在曲线级别操作，可正确处理重叠。
+
 ## [1.0.3] - 2025-12-30
 
 ### 变更

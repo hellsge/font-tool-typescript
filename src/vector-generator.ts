@@ -9,8 +9,6 @@
  */
 
 import * as fs from 'fs';
-import * as polygonClipping from 'polygon-clipping';
-import { Polygon, MultiPolygon, Ring } from 'polygon-clipping';
 import { FontGenerator } from './font-generator';
 import { FontConfig, IndexMethod } from './types';
 import { VectorGlyphData } from './types/binary';
@@ -175,7 +173,7 @@ export class VectorFontGenerator extends FontGenerator {
     }
 
     // Convert outline to vector glyph data
-    const data = this.convertOutlineToVectorData(outline);
+    const data = await this.convertOutlineToVectorData(outline);
     
     return {
       unicode,
@@ -198,7 +196,7 @@ export class VectorFontGenerator extends FontGenerator {
    * @param outline - Glyph outline from font parser
    * @returns Vector glyph data
    */
-  private convertOutlineToVectorData(outline: GlyphOutline): VectorGlyphData {
+  private async convertOutlineToVectorData(outline: GlyphOutline): Promise<VectorGlyphData> {
     const { boundingBox, advanceWidth, contours } = outline;
     
     // Apply Y-axis flip to match C++ stbtt_GetGlyphBitmapBox behavior
@@ -211,8 +209,8 @@ export class VectorFontGenerator extends FontGenerator {
     // Step 1: Flatten curves to line segments
     const flattenedContours = contours.map(contour => this.flattenContour(contour));
     
-    // Step 2: Remove overlaps
-    const processedContours = this.removeContourOverlaps(flattenedContours);
+    // Filter out invalid contours (less than 3 points)
+    const processedContours = flattenedContours.filter(c => c.length >= 3);
     
     // Prepare winding data
     const windingCount = processedContours.length;
@@ -395,115 +393,6 @@ export class VectorFontGenerator extends FontGenerator {
       }
     }
     return result;
-  }
-  
-  /**
-   * Remove overlapping contours using polygon union operation
-   * 
-   * Only outer contours (same winding direction) are merged.
-   * Inner contours (holes, opposite winding) are preserved.
-   * Union also produces new holes when contours overlap.
-   * 
-   * Note: Font contour direction convention:
-   * - CW (negative area) = outer contour
-   * - CCW (positive area) = inner contour (hole)
-   * 
-   * @param contours - Array of flattened contours
-   * @returns Non-overlapping contours
-   */
-  private removeContourOverlaps(contours: Array<Array<{x: number, y: number}>>): Array<Array<{x: number, y: number}>> {
-    // Filter out invalid contours
-    const validContours = contours.filter(c => c.length >= 3);
-    
-    if (validContours.length <= 1) {
-      return validContours;
-    }
-    
-    // Calculate signed area to distinguish outer/inner contours
-    // CW (negative area) = outer contour
-    // CCW (positive area) = inner contour (hole)
-    const contoursWithArea = validContours.map(contour => ({
-      contour,
-      area: this.calculateSignedArea(contour)
-    }));
-    
-    // Separate outer (CW, area < 0) and inner (CCW, area >= 0) contours
-    const cwContours = contoursWithArea.filter(c => c.area < 0).map(c => c.contour);
-    let ccwContours = contoursWithArea.filter(c => c.area >= 0).map(c => c.contour);
-    
-    // Union CW contours (polygon-clipping preserves non-intersecting polygons)
-    let processedCW: Array<Array<{x: number, y: number}>> = cwContours;
-    
-    if (cwContours.length > 1) {
-      try {
-        // Convert to polygon-clipping format
-        // polygon-clipping expects CCW for outer contours, so we reverse
-        const polygons: Polygon[] = cwContours.map(contour => {
-          const reversed = [...contour].reverse();
-          const ring: Ring = reversed.map(p => [p.x, p.y] as [number, number]);
-          // Close the ring
-          if (ring.length > 0) {
-            const first = ring[0];
-            const last = ring[ring.length - 1];
-            if (first[0] !== last[0] || first[1] !== last[1]) {
-              ring.push([first[0], first[1]]);
-            }
-          }
-          return [ring];
-        });
-        
-        // Perform union operation
-        const [first, ...rest] = polygons;
-        const result: MultiPolygon = rest.length > 0 
-          ? polygonClipping.union(first, ...rest)
-          : [first];
-        
-        // Convert back
-        processedCW = [];
-        for (const polygon of result) {
-          // Process all rings in the polygon
-          for (let ringIdx = 0; ringIdx < polygon.length; ringIdx++) {
-            const ring = polygon[ringIdx];
-            let points = ring.slice(0, -1).map(([x, y]) => ({
-              x: Math.round(x),
-              y: Math.round(y)
-            }));
-            
-            if (points.length >= 3) {
-              if (ringIdx === 0) {
-                // Outer ring - reverse back to CW
-                points = points.reverse();
-                processedCW.push(points);
-              } else {
-                // Hole produced by union - add to CCW contours
-                ccwContours.push(points);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('removeContourOverlaps failed:', error);
-        // Keep original CW contours on failure
-      }
-    }
-    
-    // Combine processed outer contours with all holes
-    return [...processedCW, ...ccwContours];
-  }
-  
-  /**
-   * Calculate signed area of a polygon (shoelace formula)
-   * Positive = counter-clockwise, Negative = clockwise
-   */
-  private calculateSignedArea(points: Array<{x: number, y: number}>): number {
-    if (points.length < 3) return 0;
-    let area = 0;
-    for (let i = 0; i < points.length; i++) {
-      const j = (i + 1) % points.length;
-      area += points[i].x * points[j].y;
-      area -= points[j].x * points[i].y;
-    }
-    return area / 2;
   }
 
   /**
