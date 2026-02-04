@@ -211,19 +211,14 @@ describe('Configuration Validation', () => {
   });
 
   describe('Parameter Conflict Detection (Requirements 8.4)', () => {
-    it('should reject crop=true with indexMethod=OFFSET for bitmap', () => {
+    it('should allow crop=true with indexMethod=OFFSET for bitmap (new feature)', () => {
+      // This combination is now supported for space optimization
       const config = createValidConfig();
       config.crop = true;
       config.indexMethod = IndexMethod.OFFSET;
       config.outputFormat = 'bitmap';
       
-      expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
-      try {
-        ConfigManager.validateConfig(config);
-      } catch (error) {
-        expect(error).toBeInstanceOf(FontConverterError);
-        expect((error as FontConverterError).code).toBe(ErrorCode.INDEX_METHOD_CONFLICT);
-      }
+      expect(() => ConfigManager.validateConfig(config)).not.toThrow();
     });
 
     it('should allow crop=true with indexMethod=ADDRESS for bitmap', () => {

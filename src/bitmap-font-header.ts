@@ -157,17 +157,18 @@ export class BitmapFontHeader {
    * Calculates the index area size based on index method and crop settings
    * 
    * Index modes:
-   * 1. crop=true: 65536 × 4 bytes (file offsets)
-   * 2. crop=false, indexMethod=ADDRESS: 65536 × 2 bytes (character indices)
-   * 3. crop=false, indexMethod=OFFSET: N × 2 bytes (unicode only, NO char index!)
+   * 1. crop=true, indexMethod=ADDRESS: 65536 × 4 bytes (file offsets)
+   * 2. crop=true, indexMethod=OFFSET: N × 6 bytes (unicode 2B + file offset 4B)
+   * 3. crop=false, indexMethod=ADDRESS: 65536 × 2 bytes (character indices)
+   * 4. crop=false, indexMethod=OFFSET: N × 2 bytes (unicode only, NO char index!)
    * 
    * C++ Reference (fontDictionary_o.cpp line 448-462):
    *   addrSize = crop ? 4 : 2
    *   if (indexMethod == OFFSET) indexAreaSize = cstNum * addrSize
    *   else indexAreaSize = 65536 * addrSize
    * 
-   * CRITICAL: Offset mode stores ONLY unicode (2 bytes), not unicode+index pairs!
-   * The character index is implicit from the array position.
+   * NEW: Offset + Crop mode stores unicode (2B) + file offset (4B) = 6 bytes per entry
+   * This provides significant space savings for embedded devices.
    * 
    * @param indexMethod - Index method (ADDRESS or OFFSET)
    * @param crop - Crop flag
@@ -179,13 +180,17 @@ export class BitmapFontHeader {
     crop: boolean,
     characterCount: number
   ): number {
-    const addrSize = crop ? 4 : 2;
-    
     if (indexMethod === IndexMethod.OFFSET) {
-      // Offset mode: N entries × addrSize (just unicode values)
-      return characterCount * addrSize;
+      if (crop) {
+        // Offset + Crop mode: N entries × 6 bytes (unicode 2B + file offset 4B)
+        return characterCount * 6;
+      } else {
+        // Offset mode (non-crop): N entries × 2 bytes (unicode only)
+        return characterCount * 2;
+      }
     } else {
-      // Address mode: 65536 entries × addrSize
+      // Address mode: 65536 entries × (4 bytes if crop, 2 bytes otherwise)
+      const addrSize = crop ? 4 : 2;
       return BINARY_FORMAT.MAX_INDEX_SIZE * addrSize;
     }
   }

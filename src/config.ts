@@ -580,12 +580,9 @@ export class ConfigManager {
       );
     }
 
-    // Check for indexMethod=1 + crop=true conflict (bitmap only)
-    if (config.outputFormat === 'bitmap' &&
-        config.crop &&
-        config.indexMethod === IndexMethod.OFFSET) {
-      throw createIndexMethodConflictError();
-    }
+    // Note: indexMethod=1 + crop=true is now supported
+    // Previously this combination was not allowed, but it provides
+    // significant space savings for embedded devices
 
     // Validate character sets
     if (!config.characterSets || config.characterSets.length === 0) {

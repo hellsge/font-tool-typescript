@@ -782,27 +782,38 @@ export class BitmapFontGenerator extends FontGenerator {
    * Create the index array based on index method and crop settings
    * 
    * Index modes:
-   * 1. crop=true: 65536 × 4 bytes (file offsets)
-   * 2. crop=false, indexMethod=ADDRESS: 65536 × 2 bytes (character indices)
-   * 3. crop=false, indexMethod=OFFSET: N × 4 bytes (unicode + char index)
+   * 1. crop=true, indexMethod=ADDRESS: 65536 × 4 bytes (file offsets)
+   * 2. crop=true, indexMethod=OFFSET: N × 6 bytes (unicode 2B + file offset 4B)
+   * 3. crop=false, indexMethod=ADDRESS: 65536 × 2 bytes (character indices)
+   * 4. crop=false, indexMethod=OFFSET: N × 2 bytes (unicode only)
    */
   private createIndexArray(): IndexEntry[] {
     const entries: IndexEntry[] = [];
     
     if (this.config.crop) {
-      // Crop mode: will be filled with file offsets later
-      // Initialize all entries with 0xFFFFFFFF (unused)
-      for (let i = 0; i < BINARY_FORMAT.MAX_INDEX_SIZE; i++) {
-        entries.push({ unicode: i, value: BINARY_FORMAT.UNUSED_INDEX_32 });
-      }
-      
-      // Update entries for successfully rendered characters only
-      // Failed characters keep UNUSED_INDEX_32 (0xFFFFFFFF)
-      let charIndex = 0;
-      for (const unicode of this.characters) {
-        if (this.glyphs.has(unicode)) {
-          entries[unicode].value = charIndex; // Temporary: store char index
-          charIndex++;
+      if (this.config.indexMethod === IndexMethod.OFFSET) {
+        // Offset + Crop mode: N entries with unicode + file offset (placeholder)
+        // File offsets will be filled in during writeGlyphData
+        for (const unicode of this.characters) {
+          if (this.glyphs.has(unicode)) {
+            entries.push({ unicode, value: BINARY_FORMAT.UNUSED_INDEX_32 });
+          }
+        }
+      } else {
+        // Address + Crop mode: 65536 entries with file offsets
+        // Initialize all entries with 0xFFFFFFFF (unused)
+        for (let i = 0; i < BINARY_FORMAT.MAX_INDEX_SIZE; i++) {
+          entries.push({ unicode: i, value: BINARY_FORMAT.UNUSED_INDEX_32 });
+        }
+        
+        // Update entries for successfully rendered characters only
+        // Failed characters keep UNUSED_INDEX_32 (0xFFFFFFFF)
+        let charIndex = 0;
+        for (const unicode of this.characters) {
+          if (this.glyphs.has(unicode)) {
+            entries[unicode].value = charIndex; // Temporary: store char index
+            charIndex++;
+          }
         }
       }
     } else if (this.config.indexMethod === IndexMethod.ADDRESS) {
@@ -923,10 +934,19 @@ export class BitmapFontGenerator extends FontGenerator {
     header: BitmapFontHeader
   ): void {
     if (this.config.crop) {
-      // Crop mode: 65536 × 4 bytes (uint32 file offsets)
-      // Initially write placeholder values, will be updated later
-      for (let i = 0; i < BINARY_FORMAT.MAX_INDEX_SIZE; i++) {
-        writer.writeUint32LE(BINARY_FORMAT.UNUSED_INDEX_32);
+      if (this.config.indexMethod === IndexMethod.OFFSET) {
+        // Offset + Crop mode: N × 6 bytes (unicode 2B + file offset 4B)
+        // Write unicode values now, file offsets will be updated in writeGlyphData
+        for (const entry of indexArray) {
+          writer.writeUint16LE(entry.unicode);
+          writer.writeUint32LE(BINARY_FORMAT.UNUSED_INDEX_32); // Placeholder
+        }
+      } else {
+        // Address + Crop mode: 65536 × 4 bytes (uint32 file offsets)
+        // Initially write placeholder values, will be updated later
+        for (let i = 0; i < BINARY_FORMAT.MAX_INDEX_SIZE; i++) {
+          writer.writeUint32LE(BINARY_FORMAT.UNUSED_INDEX_32);
+        }
       }
     } else if (this.config.indexMethod === IndexMethod.ADDRESS) {
       // Address mode: 65536 × 2 bytes (uint16 character indices)
@@ -962,13 +982,32 @@ export class BitmapFontGenerator extends FontGenerator {
     const sortedGlyphs = Array.from(this.glyphs.entries())
       .sort((a, b) => a[0] - b[0]);
     
+    // Build unicode to index mapping for offset+crop mode
+    const unicodeToIndexMap = new Map<number, number>();
+    if (this.config.crop && this.config.indexMethod === IndexMethod.OFFSET) {
+      indexArray.forEach((entry, idx) => {
+        unicodeToIndexMap.set(entry.unicode, idx);
+      });
+    }
+    
     for (const [unicode, glyph] of sortedGlyphs) {
       const glyphOffset = writer.getOffset();
       
       // Update index array with file offset (for crop mode)
       if (this.config.crop) {
-        const indexOffset = indexStartOffset + unicode * 4;
-        writer.writeUint32LEAt(indexOffset, glyphOffset);
+        if (this.config.indexMethod === IndexMethod.OFFSET) {
+          // Offset + Crop mode: update file offset at position (idx * 6 + 2)
+          // Format: [unicode(2B), offset(4B)] per entry
+          const idx = unicodeToIndexMap.get(unicode);
+          if (idx !== undefined) {
+            const offsetPosition = indexStartOffset + idx * 6 + 2; // Skip unicode (2B)
+            writer.writeUint32LEAt(offsetPosition, glyphOffset);
+          }
+        } else {
+          // Address + Crop mode: update file offset at position (unicode * 4)
+          const indexOffset = indexStartOffset + unicode * 4;
+          writer.writeUint32LEAt(indexOffset, glyphOffset);
+        }
       }
       
       // Write glyph header (4 bytes)

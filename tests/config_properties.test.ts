@@ -325,17 +325,8 @@ const invalidFontConfigArbitrary = (): fc.Arbitrary<{config: FontConfig, invalid
     fc.record({
       config: fontConfigArbitrary().map(config => ({ ...config, indexMethod: 5 as IndexMethod })),
       invalidField: fc.constant('indexMethod')
-    }),
-    // crop=true with indexMethod=OFFSET conflict (bitmap only)
-    fc.record({
-      config: fontConfigArbitrary().map(config => ({ 
-        ...config, 
-        crop: true, 
-        indexMethod: IndexMethod.OFFSET,
-        outputFormat: 'bitmap' as const
-      })),
-      invalidField: fc.constant('indexMethod_conflict')
     })
+    // Note: crop=true with indexMethod=OFFSET is now a valid combination (new feature)
   );
 };
 
