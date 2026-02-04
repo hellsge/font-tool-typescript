@@ -6,39 +6,60 @@
  */
 
 import { RenderMode, Rotation, IndexMethod } from './types';
+import * as fs from 'fs';
+import * as path from 'path';
+
+/**
+ * Read version from package.json
+ */
+function getPackageVersion(): { major: number; minor: number; revision: number; build: number; string: string } {
+  try {
+    const packagePath = path.resolve(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+    const versionStr = packageJson.version || '2.0.0';
+    const parts = versionStr.split('.').map((p: string) => parseInt(p, 10) || 0);
+    return {
+      major: parts[0] || 0,
+      minor: parts[1] || 0,
+      revision: parts[2] || 0,
+      build: 0,
+      string: versionStr
+    };
+  } catch {
+    return { major: 2, minor: 0, revision: 0, build: 0, string: '2.0.0' };
+  }
+}
+
+const PKG_VERSION = getPackageVersion();
 
 /**
  * Binary format version information
  * 
- * IMPORTANT: Bitmap and Vector fonts use different version numbers!
- * - Bitmap fonts: 1.0.2.0
- * - Vector fonts: 0.0.0.1
- * 
- * C++ Reference: FontDefine.h
+ * Automatically synced from package.json version
  */
 export const VERSION = {
   /** Bitmap font version */
   BITMAP: {
-    MAJOR: 1,
-    MINOR: 0,
-    REVISION: 2,
-    BUILD: 0,
-    STRING: '1.0.2'
+    MAJOR: PKG_VERSION.major,
+    MINOR: PKG_VERSION.minor,
+    REVISION: PKG_VERSION.revision,
+    BUILD: PKG_VERSION.build,
+    STRING: PKG_VERSION.string
   },
   /** Vector font version */
   VECTOR: {
-    MAJOR: 0,
-    MINOR: 0,
-    REVISION: 0,
-    BUILD: 1,
-    STRING: '0.0.0.1'
+    MAJOR: PKG_VERSION.major,
+    MINOR: PKG_VERSION.minor,
+    REVISION: PKG_VERSION.revision,
+    BUILD: PKG_VERSION.build,
+    STRING: PKG_VERSION.string
   },
   // Legacy: for backward compatibility
-  MAJOR: 1,
-  MINOR: 0,
-  REVISION: 2,
-  BUILD: 0,
-  STRING: '1.0.2'
+  MAJOR: PKG_VERSION.major,
+  MINOR: PKG_VERSION.minor,
+  REVISION: PKG_VERSION.revision,
+  BUILD: PKG_VERSION.build,
+  STRING: PKG_VERSION.string
 } as const;
 
 /**

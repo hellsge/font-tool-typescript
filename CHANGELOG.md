@@ -1,21 +1,39 @@
 # 更新日志
 
-## [1.0.4] - 2025-01-30
+## [2.0.0] - 2026-02-04
 
-### 移除
-- 矢量字体去重叠功能：JS 多边形库（polygon-clipping、martinez、clipper2）均无法正确处理字体轮廓重叠
+### 重大版本升级
+TypeScript 实现已超越 C++ 参考实现，成为主要开发版本。
 
-### 技术说明
-去重叠失败原因：
-1. JS 库操作展平后的线段，丢失贝塞尔曲线精度
-2. 填充规则不匹配：库假设 non-zero，HoneyGUI 使用 even-odd
-3. 数值精度问题导致孔洞/边界错误
+### 新增 (since 1.0.0)
+- 完整的 Bitmap 字体生成 (1/2/4/8-bit render modes)
+- 完整的 Vector 字体生成 (contour data)
+- RVD (Render Vector Data) 模式支持
+- Crop 模式空间优化
+- 2-bit/4-bit 抗锯齿：4x 超采样 + box filter 降采样
+- 兼容性测试框架 `tests/compatibility/`
+- 资源文件本地化：`Font/`, `charset/`, `CodePage/`
 
-解决方案：使用 fonttools 预处理字体文件
+### 兼容性状态
+- ✅ Bitmap + Address (r1/r2/r4/r8)
+- ✅ Bitmap + Offset (r1/r2/r4/r8)
+- ✅ Bitmap + Crop
+- ✅ Vector 基础功能
+
+### 已知限制
+- 矢量字体去重叠需使用 fonttools 预处理（JS 多边形库精度不足）
+
+### 预处理重叠字体
 ```bash
 fonttools subset input.ttf --output-file=output.ttf --unicodes="*" --overlaps-backend=pathops --remove-overlaps
 ```
-fonttools 使用 Skia pathops 在曲线级别操作，可正确处理重叠。
+
+---
+
+## [1.0.4] - 2025-01-30
+
+### 移除
+- 矢量字体去重叠功能：JS 多边形库无法正确处理字体轮廓重叠
 
 ## [1.0.3] - 2025-12-30
 

@@ -1,6 +1,8 @@
 # TypeScript Font Converter
 
-嵌入式字体转换工具，将 TrueType 字体转换为优化的 binary 格式，与 C++ 实现 (v1.0.2) 字节级兼容。
+嵌入式字体转换工具，将 TrueType 字体转换为优化的 binary 格式 (`.bin`)。
+
+> **v2.0.0** - TypeScript 实现已成为主要开发版本，功能领先于 C++ 参考实现。
 
 ## 安装
 
