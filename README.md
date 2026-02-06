@@ -173,6 +173,21 @@ npm test           # 单元测试
 npm run lint       # 代码检查
 ```
 
+### 打包部署
+
+```bash
+# 打包源码 + 运行时资源（输出到 dist/font-converter-deploy/）
+npm run pack:deploy
+
+# 打包并生成 zip
+npm run pack:deploy:zip
+
+# 自定义输出路径
+node scripts/pack-deploy.js --output ../target-repo/tools/font-converter
+```
+
+> 打包内容：`src/` + `charset/` + `CodePage/` + `package.json` + `tsconfig.json`，可直接拷贝到其他仓库作为源码依赖使用。
+
 ### 兼容性测试 (TS vs C++)
 
 ```bash
