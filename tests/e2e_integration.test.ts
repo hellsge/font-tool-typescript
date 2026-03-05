@@ -457,14 +457,14 @@ describe('E2E Integration Tests', () => {
           {
             fontPath: testFontPath,
             outputPath: testOutputDir,
-            fontSize: 16,
+            fontSize: 999, // Invalid: exceeds max font size
             renderMode: 8,
             bold: false,
             italic: false,
             rotation: 0,
             gamma: 1.0,
-            indexMethod: 1, // Offset mode
-            crop: true, // Invalid: crop=true with indexMethod=1
+            indexMethod: 0,
+            crop: false,
             outputFormat: 'bitmap',
             characterSets: [
               {

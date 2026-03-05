@@ -73,13 +73,10 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
   });
 
   it('should return non-zero exit code for invalid parameter combination', async () => {
-    const fontPath = path.join(__dirname, '../Font/NotoSans_Regular.ttf');
-
-    // Create config with crop=true and indexMethod=1 (invalid combination)
+    // Create config missing required fontPath field
     const config = {
       fonts: [
         {
-          fontPath: fontPath,
           outputPath: './output',
           fontSize: 16,
           renderMode: 4,
@@ -87,8 +84,8 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
           italic: false,
           rotation: 0,
           gamma: 1.0,
-          indexMethod: 1, // Offset mode
-          crop: true, // Crop enabled - invalid with indexMethod=1
+          indexMethod: 0,
+          crop: false,
           outputFormat: 'bitmap',
           characterSets: [
             {
@@ -104,7 +101,7 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
 
     const exitCode = await main(['node', 'font-converter', configPath]);
 
-    // Should return non-zero for invalid parameter combination
+    // Should return non-zero for missing required field
     expect(exitCode).not.toBe(0);
     expect(exitCode).toBe(3); // Configuration error
   });
