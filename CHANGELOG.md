@@ -1,5 +1,19 @@
 # 更新日志
 
+## [2.0.1] - 2026-03-05
+
+### 修复
+- Bitmap glyph header `char_w`/`char_h` 计算错误：使用 clamp 后的 `drawX`/`posY` 替代原始 `slotLeft`/未 clamp 值
+  - 对负 left bearing 字符（如 "j"）影响显著：`slotLeft=-2` 时 `char_w` 少了 2 像素，导致消费端按错误 stride 读取 bitmap 数据
+  - `posOX`/`posOY` 在上一版已修复，本次补齐 `char_w`/`char_h`
+
+### 测试
+- `cpp_compatibility.test.ts`：版本号期望从 C++ 1.0.2/0.0.0 更新为 TS 2.0.x
+- `cli_exit_codes.test.ts`：无效参数测试改用缺少 `fontPath` 字段（`renderMode: 3` 被 parse 阶段静默回退为默认值）
+- `e2e_integration.test.ts`：无效配置测试改用 `fontSize: 999`（超出 MAX_FONT_SIZE）
+
+---
+
 ## [2.0.0] - 2026-02-04
 
 ### 重大版本升级
