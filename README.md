@@ -2,7 +2,7 @@
 
 嵌入式字体转换工具，将 TrueType 字体转换为优化的 binary 格式 (`.bin`)。
 
-> **v2.0.0** - TypeScript 实现已成为主要开发版本，功能领先于 C++ 参考实现。
+> **v3.0.0** - 点阵字体字形标准化：V2 bearing-based tight bbox per-glyph header（6 字节），替代 V1 fit-in-box canvas 模型。Header extension 追加 typography metrics。
 
 ## 安装
 

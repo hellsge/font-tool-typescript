@@ -330,4 +330,28 @@ export class BinaryWriter {
     }
     this.view.setUint8(offset, value);
   }
+
+  /**
+   * Writes a V2 glyph header (6 bytes): bearing-based per-glyph header
+   * Layout: [bearingX(int8), bearingY(int8), width(uint8), height(uint8), advance(uint8), reserved(uint8)]
+   *
+   * Requirements: 3.1
+   */
+  writeGlyphHeaderV2(header: {
+    bearingX: number;
+    bearingY: number;
+    width: number;
+    height: number;
+    advance: number;
+    reserved: number;
+  }): void {
+    this.ensureCapacity(6);
+    this.view.setInt8(this.offset, header.bearingX);
+    this.view.setInt8(this.offset + 1, header.bearingY);
+    this.view.setUint8(this.offset + 2, header.width);
+    this.view.setUint8(this.offset + 3, header.height);
+    this.view.setUint8(this.offset + 4, header.advance);
+    this.view.setUint8(this.offset + 5, header.reserved);
+    this.offset += 6;
+  }
 }

@@ -12,6 +12,40 @@ import { FileFlag, RenderMode, IndexMethod } from './types';
 import { VERSION, BINARY_FORMAT } from './constants';
 
 /**
+ * Calculate standard rendering and canvas dimensions for V2 font output.
+ *
+ * @param fontSize - User-specified em-size (must be > 0)
+ * @param unitsPerEm - Font design units per em
+ * @param ascender - Font ascender in font units (positive)
+ * @param descender - Font descender in font units (negative)
+ * @returns renderSize (= fontSize, no scaling) and backSize (canvas height)
+ *
+ * Requirements: 1.1, 1.2, 1.3, 1.4
+ */
+export function calculateStandardDimensions(
+  fontSize: number,
+  unitsPerEm: number,
+  ascender: number,
+  descender: number,
+): { renderSize: number; backSize: number } {
+  if (fontSize <= 0) {
+    throw new Error(`fontSize must be positive, got ${fontSize}`);
+  }
+
+  const renderSize = fontSize;
+  let backSize = Math.ceil(fontSize * (ascender - descender) / unitsPerEm);
+
+  if (backSize > 255) {
+    console.warn(
+      `backSize ${backSize} exceeds 255 for fontSize=${fontSize}, clamping to 255`,
+    );
+    backSize = 255;
+  }
+
+  return { renderSize, backSize };
+}
+
+/**
  * Configuration for BitmapFontHeader
  */
 export interface BitmapFontHeaderConfig {
@@ -44,6 +78,18 @@ export interface BitmapFontHeaderConfig {
   
   /** RVD flag (render at original size) */
   rvd?: boolean;
+
+  /** Font ascender in font units (V2 only, positive) */
+  ascender?: number;
+
+  /** Font descender in font units (V2 only, negative) */
+  descender?: number;
+
+  /** Font lineGap in font units (V2 only) */
+  lineGap?: number;
+
+  /** Font unitsPerEm (V2 only) */
+  unitsPerEm?: number;
 }
 
 /**
@@ -71,24 +117,22 @@ export class BitmapFontHeader {
   /** File flag (always BITMAP = 1) */
   public readonly fileFlag: FileFlag = FileFlag.BITMAP;
   
-  /** 
-   * Version major (always 1 for bitmap fonts)
-   * 
-   * IMPORTANT: Bitmap fonts use version 1.0.2, Vector fonts use 0.0.0.1
-   * C++ Reference: BitmapFontHeader constructor in FontDefine.h
-   */
-  public readonly versionMajor: number = VERSION.BITMAP.MAJOR;
+  /** Version major */
+  public readonly versionMajor: number;
   
-  /** Version minor (always 0 for bitmap fonts) */
-  public readonly versionMinor: number = VERSION.BITMAP.MINOR;
+  /** Version minor */
+  public readonly versionMinor: number;
   
-  /** Version revision (always 2 for bitmap fonts) */
-  public readonly versionRevision: number = VERSION.BITMAP.REVISION;
+  /** Version revision */
+  public readonly versionRevision: number;
+
+  /** Version build number (4th version byte, added for V2) */
+  public readonly versionBuildnum: number;
   
   /** Recalculated font size */
   public readonly size: number;
   
-  /** Original font size (backSize) */
+  /** Original font size (backSize in V1, em-size in V2) */
   public readonly fontSize: number;
   
   /** Render mode */
@@ -121,8 +165,23 @@ export class BitmapFontHeader {
   /** Font name (without extension) */
   public readonly fontName: string;
 
-  /** Size of BitmapFontHeadConfig structure in bytes */
+  /** Whether this is a V2 header */
+  public readonly isV2: boolean;
+
+  /** V2 typography metrics */
+  public readonly ascender?: number;
+  public readonly descender?: number;
+  public readonly lineGap?: number;
+  public readonly unitsPerEm?: number;
+
+  /**
+   * Size of BitmapFontHeadConfig structure in bytes.
+   * file_type(1) + version(4) + font_size(1) + render_mode(1) + bitfield(1) + index_area_size(4) = 12
+   */
   private static readonly CONFIG_SIZE = 12;
+
+  /** Size of V2 extension fields (ascender + descender + lineGap + unitsPerEm) */
+  private static readonly V2_EXTENSION_SIZE = 8;
 
   /**
    * Creates a new BitmapFontHeader
@@ -133,24 +192,56 @@ export class BitmapFontHeader {
     this.fontName = config.fontName;
     this.fontNameLength = config.fontName.length + 1; // +1 for null terminator
     this.size = config.size;
-    this.fontSize = config.fontSize;
     this.renderMode = config.renderMode;
     this.bold = config.bold;
     this.italic = config.italic;
     this.rvd = config.rvd || false;
     this.indexMethod = config.indexMethod;
-    this.crop = config.crop;
+
+    // Detect V2 mode: all three typography fields must be provided
+    this.isV2 = config.ascender != null && config.descender != null && config.unitsPerEm != null;
+
+    if (this.isV2) {
+      // V2 validation
+      if (config.ascender! <= 0) {
+        throw new Error(`V2 ascender must be positive, got ${config.ascender}`);
+      }
+      if (config.descender! >= 0) {
+        throw new Error(`V2 descender must be negative, got ${config.descender}`);
+      }
+
+      // V2: version from package.json, crop always true, fontSize = em-size
+      this.versionMajor = VERSION.BITMAP.MAJOR;
+      this.versionMinor = VERSION.BITMAP.MINOR;
+      this.versionRevision = VERSION.BITMAP.REVISION;
+      this.versionBuildnum = VERSION.BITMAP.BUILD;
+      this.crop = true;
+      this.fontSize = config.fontSize;
+      this.ascender = config.ascender;
+      this.descender = config.descender;
+      this.lineGap = config.lineGap ?? 0;
+      this.unitsPerEm = config.unitsPerEm;
+    } else {
+      // V1: version from package.json
+      this.versionMajor = VERSION.BITMAP.MAJOR;
+      this.versionMinor = VERSION.BITMAP.MINOR;
+      this.versionRevision = VERSION.BITMAP.REVISION;
+      this.versionBuildnum = VERSION.BITMAP.BUILD;
+      this.crop = config.crop;
+      this.fontSize = config.fontSize;
+    }
     
     // Calculate index area size based on indexMethod and crop
     this.indexAreaSize = this.calculateIndexAreaSize(
       config.indexMethod,
-      config.crop,
+      this.crop,
       config.characterCount
     );
     
     // Calculate total header length:
-    // sizeof(BitmapFontHeadConfig) + 2 (length + fontNameLength) + fontNameLength
-    this.length = BitmapFontHeader.CONFIG_SIZE + 2 + this.fontNameLength;
+    // CONFIG_SIZE (13) + 2 (length + fontNameLength) + fontNameLength [+ 8 for V2 extension]
+    this.length = BitmapFontHeader.CONFIG_SIZE + 2 + this.fontNameLength
+      + (this.isV2 ? BitmapFontHeader.V2_EXTENSION_SIZE : 0);
   }
 
   /**
@@ -206,13 +297,13 @@ export class BitmapFontHeader {
     // Write length (1 byte)
     writer.writeUint8(this.length);
     
-    // Write BitmapFontHeadConfig (13 bytes)
+    // Write BitmapFontHeadConfig
     writer.writeUint8(this.fileFlag);           // fileFlag (1 byte)
     writer.writeUint8(this.versionMajor);       // version_major (1 byte)
     writer.writeUint8(this.versionMinor);       // version_minor (1 byte)
     writer.writeUint8(this.versionRevision);    // version_revision (1 byte)
-    writer.writeUint8(this.size);               // size (1 byte)
-    writer.writeUint8(this.fontSize);           // fontSize (1 byte)
+    writer.writeUint8(this.versionBuildnum);    // version_buildnum (1 byte) — new 4th byte
+    writer.writeUint8(this.fontSize);           // fontSize (1 byte) — C side: font_size
     writer.writeUint8(this.renderMode);         // renderMode (1 byte)
     
     // Write bitfield (1 byte)
@@ -232,6 +323,14 @@ export class BitmapFontHeader {
     
     // Write fontName (null-terminated)
     writer.writeNullTerminatedString(this.fontName);
+
+    // V2 extension: 8 bytes after font_name
+    if (this.isV2) {
+      writer.writeInt16LE(this.ascender!);      // ascender (int16 LE)
+      writer.writeInt16LE(this.descender!);     // descender (int16 LE)
+      writer.writeInt16LE(this.lineGap!);       // line_gap (int16 LE)
+      writer.writeUint16LE(this.unitsPerEm!);   // units_per_em (uint16 LE)
+    }
     
     return writer.getBuffer();
   }
@@ -262,7 +361,7 @@ export class BitmapFontHeader {
     const versionMajor = data.readUInt8(offset++);
     const versionMinor = data.readUInt8(offset++);
     const versionRevision = data.readUInt8(offset++);
-    const size = data.readUInt8(offset++);
+    const versionBuildnum = data.readUInt8(offset++);  // 4th version byte
     const fontSize = data.readUInt8(offset++);
     const renderMode = data.readUInt8(offset++) as RenderMode;
     
@@ -283,6 +382,20 @@ export class BitmapFontHeader {
     
     // Read fontName (excluding null terminator)
     const fontName = data.toString('utf8', offset, offset + fontNameLength - 1);
+    offset += fontNameLength;
+
+    // V2 detection: parse extension fields if versionMajor >= 2
+    let ascender: number | undefined;
+    let descender: number | undefined;
+    let lineGap: number | undefined;
+    let unitsPerEm: number | undefined;
+
+    if (versionMajor >= 2 && offset + BitmapFontHeader.V2_EXTENSION_SIZE <= data.length) {
+      ascender = data.readInt16LE(offset); offset += 2;
+      descender = data.readInt16LE(offset); offset += 2;
+      lineGap = data.readInt16LE(offset); offset += 2;
+      unitsPerEm = data.readUInt16LE(offset); offset += 2;
+    }
     
     // Calculate character count from indexAreaSize
     let characterCount = 0;
@@ -297,14 +410,19 @@ export class BitmapFontHeader {
     
     return new BitmapFontHeader({
       fontName,
-      size,
+      size: fontSize,
       fontSize,
       renderMode,
       bold,
       italic,
       indexMethod,
       crop,
-      characterCount
+      characterCount,
+      rvd,
+      ascender,
+      descender,
+      lineGap,
+      unitsPerEm,
     });
   }
 }

@@ -243,10 +243,12 @@ describeIfFontExists('Feature: typescript-font-converter, Property 16: Index Arr
             const headerLength = data[0];
             
             // Read indexAreaSize from header (at offset 9, 4 bytes, little-endian)
+            // Offset: length(1) + fileFlag(1) + version(4) + fontSize(1) + renderMode(1) + bitfield(1) = 9
             const indexAreaSize = data.readInt32LE(9);
             
-            // For ADDRESS mode without crop: 65536 × 2 bytes
-            expect(indexAreaSize).toBe(BINARY_FORMAT.MAX_INDEX_SIZE * 2);
+            // V2 mode forces crop=true for fonts with valid typography metrics
+            // For ADDRESS mode with crop: 65536 × 4 bytes (file offsets)
+            expect(indexAreaSize).toBe(BINARY_FORMAT.MAX_INDEX_SIZE * 4);
             
             generator.cleanup();
           } finally {
@@ -293,8 +295,8 @@ describeIfFontExists('Feature: typescript-font-converter, Property 16: Index Arr
             // Read indexAreaSize from header (at offset 9, 4 bytes, little-endian)
             const indexAreaSize = data.readInt32LE(9);
             
-            // For OFFSET mode: N × 2 bytes (unicode only, char index is implicit)
-            expect(indexAreaSize).toBe(glyphCount * 2);
+            // V2 mode forces crop=true, so OFFSET mode uses N × 6 bytes (unicode 2B + file offset 4B)
+            expect(indexAreaSize).toBe(glyphCount * 6);
             
             generator.cleanup();
           } finally {

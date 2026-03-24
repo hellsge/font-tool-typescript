@@ -62,10 +62,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
     offset += 1;
     const versionRevision = buffer.readUInt8(offset);
     offset += 1;
+    const versionBuildnum = buffer.readUInt8(offset);
+    offset += 1;
 
     // Read size and fontSize
-    const size = buffer.readUInt8(offset);
-    offset += 1;
+    // V2 layout: no separate 'size' field, only fontSize
     const fontSize = buffer.readUInt8(offset);
     offset += 1;
 
@@ -94,13 +95,24 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
     const fontName = buffer.toString('utf-8', offset, offset + fontNameLength);
     offset += fontNameLength;
 
+    // V2 extension: 8 bytes after font_name
+    let ascender: number | undefined;
+    let descender: number | undefined;
+    let lineGap: number | undefined;
+    let unitsPerEm: number | undefined;
+    if (versionMajor >= 2 && offset + 8 <= buffer.length) {
+      ascender = buffer.readInt16LE(offset); offset += 2;
+      descender = buffer.readInt16LE(offset); offset += 2;
+      lineGap = buffer.readInt16LE(offset); offset += 2;
+      unitsPerEm = buffer.readUInt16LE(offset); offset += 2;
+    }
+
     return {
       headerLength,
       fileFlag,
       versionMajor,
       versionMinor,
       versionRevision,
-      size,
       fontSize,
       renderMode,
       bold,
@@ -111,6 +123,10 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       indexAreaSize,
       fontNameLength,
       fontName,
+      ascender,
+      descender,
+      lineGap,
+      unitsPerEm,
       headerEndOffset: offset
     };
   }
@@ -263,9 +279,8 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       // Parse header
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
 
-      // Verify version matches package.json (v2.0.0)
-      // TS v2.0.0 uses its own version, no longer mirrors C++ 1.0.2
-      expect(header.versionMajor).toBe(2);
+      // Verify version matches package.json (v3.0.0)
+      expect(header.versionMajor).toBe(3);
       expect(header.versionMinor).toBe(0);
       expect(header.versionRevision).toBe(0);
 
@@ -278,10 +293,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(header.bold).toBe(false);
       expect(header.italic).toBe(false);
       expect(header.indexMethod).toBe(0);
-      expect(header.crop).toBe(false);
+      // V2 mode forces crop=true for fonts with valid typography metrics
+      expect(header.crop).toBe(true);
 
-      // Verify index area size is correct for address mode (65536 * 2 bytes)
-      expect(header.indexAreaSize).toBe(131072);
+      // Verify index area size is correct for address+crop mode (65536 * 4 bytes)
+      expect(header.indexAreaSize).toBe(262144);
     }, 30000);
 
     it('should generate bitmap font with crop mode header compatible with C++', async () => {
@@ -368,9 +384,8 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
 
       const header = parseVectorHeader(path.join(testOutputDir, binFile!));
 
-      // Verify version matches package.json (v2.0.0)
-      // TS v2.0.0 uses its own version for vector fonts too
-      expect(header.versionMajor).toBe(2);
+      // Verify version matches package.json (v3.0.0)
+      expect(header.versionMajor).toBe(3);
       expect(header.versionMinor).toBe(0);
       expect(header.versionRevision).toBe(0);
 
@@ -531,23 +546,22 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       const indexStart = header.headerEndOffset;
       const indexSize = header.indexAreaSize;
 
-      // Verify index array size
-      expect(indexSize).toBe(131072); // 65536 * 2 bytes
+      // V2 mode forces crop=true, so index is 65536 * 4 bytes (file offsets)
+      expect(indexSize).toBe(262144); // 65536 * 4 bytes
 
-      // Check that used entries have valid indices
+      // Check that used entries have valid file offsets (uint32)
       for (let unicode = 0x0041; unicode <= 0x0046; unicode++) {
-        const offset = indexStart + unicode * 2;
-        const charIndex = buffer.readUInt16LE(offset);
+        const offset = indexStart + unicode * 4;
+        const fileOffset = buffer.readUInt32LE(offset);
         
-        // Should have a valid character index (0-5)
-        expect(charIndex).toBeGreaterThanOrEqual(0);
-        expect(charIndex).toBeLessThan(6);
+        // Should have a valid file offset (not 0xFFFFFFFF)
+        expect(fileOffset).not.toBe(0xFFFFFFFF);
       }
 
-      // Check that unused entries are initialized to 0xFFFF
-      const unusedOffset = indexStart + 0x0100 * 2; // Check entry at 0x0100
-      const unusedValue = buffer.readUInt16LE(unusedOffset);
-      expect(unusedValue).toBe(0xFFFF);
+      // Check that unused entries are initialized to 0xFFFFFFFF
+      const unusedOffset = indexStart + 0x0100 * 4; // Check entry at 0x0100
+      const unusedValue = buffer.readUInt32LE(unusedOffset);
+      expect(unusedValue).toBe(0xFFFFFFFF);
     }, 30000);
 
     it('should generate offset mode index array compatible with C++', async () => {
@@ -588,17 +602,18 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));
 
-      // Verify index array size (N * 2 bytes, unicode only)
-      expect(header.indexAreaSize).toBe(12); // 6 characters * 2 bytes
+      // V2 mode forces crop=true, so offset mode uses N * 6 bytes (unicode 2B + file offset 4B)
+      expect(header.indexAreaSize).toBe(36); // 6 characters * 6 bytes
 
-      // Read index entries (offset mode: unicode only, 2 bytes each)
+      // Read index entries (offset+crop mode: unicode 2B + file offset 4B each)
       const indexStart = header.headerEndOffset;
-      const entries: Array<{ unicode: number }> = [];
+      const entries: Array<{ unicode: number; offset: number }> = [];
 
       for (let i = 0; i < 6; i++) {
-        const offset = indexStart + i * 2;
+        const offset = indexStart + i * 6;
         const unicode = buffer.readUInt16LE(offset);
-        entries.push({ unicode });
+        const fileOffset = buffer.readUInt32LE(offset + 2);
+        entries.push({ unicode, offset: fileOffset });
       }
 
       // Verify entries are sorted by unicode
@@ -653,8 +668,9 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));
 
       // Check index area size (int32 at offset 9)
+      // V2 mode forces crop=true, so address mode uses 65536 * 4 = 262144 bytes
       const indexAreaSize = buffer.readInt32LE(9);
-      expect(indexAreaSize).toBe(131072);
+      expect(indexAreaSize).toBe(262144);
 
       // Verify it would be different if read as big-endian
       const indexAreaSizeBE = buffer.readInt32BE(9);

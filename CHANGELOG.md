@@ -1,5 +1,34 @@
 # 更新日志
 
+## [3.0.0] - 2026-03-24
+
+点阵字体字形标准化重构 — V2 bearing-based tight bbox 格式。
+V1 的 fit-in-box canvas 模型（4 字节 glyph header + 固定 canvas 像素）替换为
+V2 的 bearing-based 紧凑存储（6 字节 glyph header + tight bbox 像素），
+header extension 追加 typography metrics 供消费端排版。
+
+### Breaking Changes
+- Bitmap header 版本号跟随 tool 版本：`{1,0,2}` → `{3,0,0,0}`（4 字节 version，从 package.json 同步）
+- `font_size` 字段语义变更：V1 backSize → V2 em-size（= 用户 fontSize，不缩小）
+- V2 强制 crop（bearing-based 紧凑存储），`crop` 配置项对 V2 无效
+- `bitmap-generator.ts` 重构：移除 fit-in-box 缩放逻辑（`scaledFontSize`/`calculateRecalculatedSize`），`renderGlyph` → `processGlyph`，`rasterizePathImproved` → `rasterizePath`
+- 移除 `BitmapGlyphData` interface
+
+### 新增
+- V2 per-glyph header（6 字节）：bearingX/bearingY/width/height/advance/reserved，替代 V1 的 4 字节 [xOffset/topSkip, yOffset, charWidth, charHeight] 格式
+- tight bbox 像素存储：仅存字形实际覆盖区域，不再填充固定 canvas
+- V2 header extension：ascender/descender/lineGap/unitsPerEm（8 字节，追加在 font_name 之后）
+- `calculateStandardDimensions()`：renderSize = fontSize，backSize = ceil(fontSize × (asc-desc) / upm)
+- `BinaryWriter.writeGlyphHeaderV2()`：bearing-based glyph header 序列化
+- `BitmapFontHeader.fromBytes()` 兼容 V1/V2 两种 header 读取
+
+### 变更
+- 5 个测试文件适配 V2 header layout
+- 新增 `tests/v2_header.test.ts`（V2 header round-trip 测试）
+- 矢量字体模块未变更
+
+---
+
 ## [2.0.2] - 2026-03-06
 
 ### 修复

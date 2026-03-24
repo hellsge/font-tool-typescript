@@ -352,8 +352,9 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));
 
       // Verify little-endian format by checking index area size (int32 at offset 9)
+      // V2 mode forces crop=true, so address mode uses 65536 * 4 = 262144 bytes
       const indexAreaSize = buffer.readInt32LE(9);
-      expect(indexAreaSize).toBe(131072); // 65536 * 2 bytes for address mode
+      expect(indexAreaSize).toBe(262144); // 65536 * 4 bytes for address+crop mode (V2)
 
       // Verify it would be different if read as big-endian
       const indexAreaSizeBE = buffer.readInt32BE(9);

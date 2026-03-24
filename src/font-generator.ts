@@ -5,7 +5,10 @@
  * Provides common functionality for font loading, character set processing,
  * and output file generation.
  * 
- * Requirements: 2.1, 3.1
+ * Bitmap fonts use V2 format with bearing-based glyph headers and
+ * typography metrics in the header extension. The parsed font metrics
+ * (ascender, descender, lineGap, unitsPerEm) are extracted by
+ * FontParser.extractMetrics() and available via parsedFont.metrics.
  */
 
 import * as fs from 'fs';

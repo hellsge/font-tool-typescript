@@ -59,25 +59,25 @@ export interface GlyphEntry {
 }
 
 /**
- * Bitmap glyph data
- */
-export interface BitmapGlyphData {
-  width: number;                 // Glyph width in pixels
-  height: number;                // Glyph height in pixels
-  xOffset: number;               // X offset for rendering
-  yOffset: number;               // Y offset for rendering
-  advance: number;               // Advance width
-  pixelData: Buffer;             // Packed pixel data
-}
-
-/**
- * Crop information for bitmap glyphs
+ * Crop information for bitmap glyphs (used by ImageProcessor.cropCharacter)
  */
 export interface CropInfo {
   topSkip: number;               // 1 byte - pixels to skip from top
   leftSkip: number;              // 1 byte - pixels to skip from left
   validWidth: number;            // 1 byte - valid width after cropping
   validHeight: number;           // 1 byte - valid height after cropping
+}
+
+/**
+ * Per-glyph header (bearing-based, 6 bytes)
+ */
+export interface GlyphHeaderV2 {
+  bearingX: number;    // int8: horizontal bearing (pixels)
+  bearingY: number;    // int8: vertical bearing from baseline (pixels)
+  width: number;       // uint8: tight bbox width (pixels)
+  height: number;      // uint8: tight bbox height (pixels)
+  advance: number;     // uint8: horizontal advance (pixels)
+  reserved: number;    // uint8: padding, always 0
 }
 
 /**

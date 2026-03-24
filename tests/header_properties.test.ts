@@ -23,6 +23,9 @@ const fontNameArbitrary = fc.string({ minLength: 1, maxLength: 50 })
 /**
  * Arbitrary generator for BitmapFontHeaderConfig
  */
+/**
+ * Arbitrary generator for V2 BitmapFontHeaderConfig (with typography metrics)
+ */
 const bitmapFontHeaderConfigArbitrary: fc.Arbitrary<BitmapFontHeaderConfig> = fc.record({
   fontName: fontNameArbitrary,
   size: fc.integer({ min: 1, max: 255 }),
@@ -32,13 +35,11 @@ const bitmapFontHeaderConfigArbitrary: fc.Arbitrary<BitmapFontHeaderConfig> = fc
   italic: fc.boolean(),
   indexMethod: fc.constantFrom(IndexMethod.ADDRESS, IndexMethod.OFFSET),
   crop: fc.boolean(),
-  characterCount: fc.integer({ min: 1, max: 65536 })
-}).filter(config => {
-  // Filter out invalid combinations: crop=true with indexMethod=OFFSET
-  if (config.crop && config.indexMethod === IndexMethod.OFFSET) {
-    return false;
-  }
-  return true;
+  characterCount: fc.integer({ min: 1, max: 65536 }),
+  ascender: fc.integer({ min: 1, max: 3000 }),
+  descender: fc.integer({ min: -3000, max: -1 }),
+  lineGap: fc.integer({ min: 0, max: 500 }),
+  unitsPerEm: fc.integer({ min: 64, max: 4096 }),
 });
 
 /**
@@ -58,7 +59,7 @@ const vectorFontHeaderConfigArbitrary: fc.Arbitrary<VectorFontHeaderConfig> = fc
 });
 
 describe('Feature: typescript-font-converter, Property 13: Binary Format 版本一致性', () => {
-  it('should always produce version 1.0.2 for bitmap font headers', () => {
+  it('should always produce version from package.json for V2 bitmap font headers', () => {
     fc.assert(
       fc.property(
         bitmapFontHeaderConfigArbitrary,
@@ -66,14 +67,11 @@ describe('Feature: typescript-font-converter, Property 13: Binary Format 版本�
           const header = new BitmapFontHeader(config);
           const bytes = header.toBytes();
           
-          // Version bytes are at offsets 2, 3, 4 (after length and fileFlag)
-          const versionMajor = bytes[2];
-          const versionMinor = bytes[3];
-          const versionRevision = bytes[4];
-          
-          expect(versionMajor).toBe(VERSION.MAJOR);
-          expect(versionMinor).toBe(VERSION.MINOR);
-          expect(versionRevision).toBe(VERSION.REVISION);
+          // V2 writes version from package.json (3.0.0)
+          expect(bytes[2]).toBe(VERSION.BITMAP.MAJOR);
+          expect(bytes[3]).toBe(VERSION.BITMAP.MINOR);
+          expect(bytes[4]).toBe(VERSION.BITMAP.REVISION);
+          expect(bytes[5]).toBe(VERSION.BITMAP.BUILD);
         }
       ),
       { numRuns: 100 }
@@ -155,14 +153,17 @@ describe('BitmapFontHeader serialization', () => {
           
           // Verify key fields match
           expect(parsed.fontName).toBe(original.fontName);
-          expect(parsed.size).toBe(original.size);
+          // V2: size is not serialized separately; fromBytes sets size = fontSize
+          expect(parsed.size).toBe(original.fontSize);
           expect(parsed.fontSize).toBe(original.fontSize);
           expect(parsed.renderMode).toBe(original.renderMode);
           expect(parsed.bold).toBe(original.bold);
           expect(parsed.italic).toBe(original.italic);
           expect(parsed.indexMethod).toBe(original.indexMethod);
-          expect(parsed.crop).toBe(original.crop);
-          expect(parsed.indexAreaSize).toBe(original.indexAreaSize);
+          // V2 forces crop=true
+          expect(parsed.crop).toBe(true);
+          // Note: indexAreaSize round-trip is lossy because fromBytes cannot recover characterCount
+          // from binary data (crop mode sets characterCount=0). This is a known limitation.
         }
       ),
       { numRuns: 100 }
@@ -182,10 +183,10 @@ describe('BitmapFontHeader serialization', () => {
           expect(bytes.length).toBe(header.length);
           expect(lengthByte).toBe(header.length);
           
-          // Expected length: 12 (config) + 2 (length + fontNameLength) + fontNameLength
+          // Expected length: CONFIG_SIZE(12) + 2 (length + fontNameLength) + fontNameLength + 8 (V2 extension)
           // fontNameLength = fontName.length + 1 (null terminator)
           const fontNameLength = config.fontName.length + 1;
-          const expectedLength = 12 + 2 + fontNameLength;
+          const expectedLength = 12 + 2 + fontNameLength + 8;
           expect(header.length).toBe(expectedLength);
         }
       ),
@@ -201,7 +202,7 @@ describe('BitmapFontHeader serialization', () => {
           const header = new BitmapFontHeader(config);
           const bytes = header.toBytes();
           
-          // Bitfield is at offset 8 (after length, fileFlag, version×3, size, fontSize, renderMode)
+          // Bitfield is at offset 8 (length(1) + fileFlag(1) + version(4) + fontSize(1) + renderMode(1))
           const bitfield = bytes[8];
           
           // Verify individual bits
@@ -213,7 +214,8 @@ describe('BitmapFontHeader serialization', () => {
           expect(boldBit).toBe(config.bold);
           expect(italicBit).toBe(config.italic);
           expect(indexMethodBit).toBe(config.indexMethod === IndexMethod.OFFSET);
-          expect(cropBit).toBe(config.crop);
+          // V2 forces crop=true
+          expect(cropBit).toBe(true);
         }
       ),
       { numRuns: 100 }
