@@ -1,9 +1,9 @@
 /**
  * Header Parser for Compatibility Testing
- * 
+ *
  * This module provides functions to parse bitmap and vector font headers
  * from binary files for comparison between C++ and TypeScript outputs.
- * 
+ *
  * Requirements: 4.1 - Header structure comparison
  */
 
@@ -121,10 +121,9 @@ export interface HeaderParseResult {
   rawBytes?: Buffer;
 }
 
-
 /**
  * Parses a Bitmap Font Header from a Buffer
- * 
+ *
  * Binary layout (packed, little-endian):
  * - length (1 byte): Total header length
  * - fileFlag (1 byte): 1 for bitmap
@@ -138,33 +137,33 @@ export interface HeaderParseResult {
  * - indexAreaSize (4 bytes, int32): Size of index array in bytes
  * - fontNameLength (1 byte): Length of font name including null terminator
  * - fontName (variable): Null-terminated font name
- * 
+ *
  * @param data - Buffer containing header data
  * @returns Parsed bitmap header
  */
 export function parseBitmapHeader(data: Buffer): ParsedBitmapHeader {
   let offset = 0;
-  
+
   // Read length (1 byte)
   const length = data.readUInt8(offset++);
-  
+
   // Read fileFlag (1 byte)
   const fileFlag = data.readUInt8(offset++);
-  
+
   // Read version (3 bytes)
   const versionMajor = data.readUInt8(offset++);
   const versionMinor = data.readUInt8(offset++);
   const versionRevision = data.readUInt8(offset++);
-  
+
   // Read size (1 byte)
   const size = data.readUInt8(offset++);
-  
+
   // Read fontSize (1 byte)
   const fontSize = data.readUInt8(offset++);
-  
+
   // Read renderMode (1 byte)
   const renderMode = data.readUInt8(offset++);
-  
+
   // Read bitfield (1 byte)
   const rawBitfield = data.readUInt8(offset++);
   const bold = (rawBitfield & 0x01) !== 0;
@@ -173,17 +172,17 @@ export function parseBitmapHeader(data: Buffer): ParsedBitmapHeader {
   const indexMethod = (rawBitfield & 0x08) !== 0 ? 1 : 0;
   const crop = (rawBitfield & 0x10) !== 0;
   const rsvd = (rawBitfield >> 5) & 0x07;
-  
+
   // Read indexAreaSize (4 bytes, little-endian)
   const indexAreaSize = data.readInt32LE(offset);
   offset += 4;
-  
+
   // Read fontNameLength (1 byte)
   const fontNameLength = data.readUInt8(offset++);
-  
+
   // Read fontName (excluding null terminator)
   const fontName = data.toString('utf8', offset, offset + fontNameLength - 1);
-  
+
   return {
     length,
     fileFlag,
@@ -202,13 +201,13 @@ export function parseBitmapHeader(data: Buffer): ParsedBitmapHeader {
     indexAreaSize,
     fontNameLength,
     fontName,
-    rawBitfield
+    rawBitfield,
   };
 }
 
 /**
  * Parses a Vector Font Header from a Buffer
- * 
+ *
  * Binary layout (packed, little-endian):
  * - length (1 byte): Total header length
  * - fileFlag (1 byte): 2 for vector
@@ -225,61 +224,61 @@ export function parseBitmapHeader(data: Buffer): ParsedBitmapHeader {
  * - descent (2 bytes, int16)
  * - lineGap (2 bytes, int16)
  * - fontName (variable): Null-terminated font name
- * 
+ *
  * @param data - Buffer containing header data
  * @returns Parsed vector header
  */
 export function parseVectorHeader(data: Buffer): ParsedVectorHeader {
   let offset = 0;
-  
+
   // Read length (1 byte)
   const length = data.readUInt8(offset++);
-  
+
   // Read fileFlag (1 byte)
   const fileFlag = data.readUInt8(offset++);
-  
+
   // Read version (4 bytes)
   const versionMajor = data.readUInt8(offset++);
   const versionMinor = data.readUInt8(offset++);
   const versionRevision = data.readUInt8(offset++);
   const versionBuildnum = data.readUInt8(offset++);
-  
+
   // Read fontSize (1 byte)
   const fontSize = data.readUInt8(offset++);
-  
+
   // Read renderMode (1 byte)
   const renderMode = data.readUInt8(offset++);
-  
+
   // Read bitfield (1 byte)
   const rawBitfield = data.readUInt8(offset++);
   const bold = (rawBitfield & 0x01) !== 0;
   const italic = (rawBitfield & 0x02) !== 0;
   const rvd = (rawBitfield & 0x04) !== 0;
   const indexMethod = (rawBitfield & 0x08) !== 0 ? 1 : 0;
-  const rsvd = (rawBitfield >> 4) & 0x0F;
-  
+  const rsvd = (rawBitfield >> 4) & 0x0f;
+
   // Read indexAreaSize (4 bytes, little-endian)
   const indexAreaSize = data.readInt32LE(offset);
   offset += 4;
-  
+
   // Read fontNameLength (1 byte)
   const fontNameLength = data.readUInt8(offset++);
-  
+
   // Read ascent (2 bytes, little-endian)
   const ascent = data.readInt16LE(offset);
   offset += 2;
-  
+
   // Read descent (2 bytes, little-endian)
   const descent = data.readInt16LE(offset);
   offset += 2;
-  
+
   // Read lineGap (2 bytes, little-endian)
   const lineGap = data.readInt16LE(offset);
   offset += 2;
-  
+
   // Read fontName (excluding null terminator)
   const fontName = data.toString('utf8', offset, offset + fontNameLength - 1);
-  
+
   return {
     length,
     fileFlag,
@@ -300,13 +299,13 @@ export function parseVectorHeader(data: Buffer): ParsedVectorHeader {
     descent,
     lineGap,
     fontName,
-    rawBitfield
+    rawBitfield,
   };
 }
 
 /**
  * Detects the file type from the header
- * 
+ *
  * @param data - Buffer containing at least 2 bytes
  * @returns File type ('bitmap', 'vector', or 'unknown')
  */
@@ -314,21 +313,21 @@ export function detectFileType(data: Buffer): 'bitmap' | 'vector' | 'unknown' {
   if (data.length < 2) {
     return 'unknown';
   }
-  
+
   const fileFlag = data.readUInt8(1); // fileFlag is at offset 1
-  
+
   if (fileFlag === FileFlag.BITMAP) {
     return 'bitmap';
   } else if (fileFlag === FileFlag.VECTOR) {
     return 'vector';
   }
-  
+
   return 'unknown';
 }
 
 /**
  * Parses a font header from a Buffer, auto-detecting the type
- * 
+ *
  * @param data - Buffer containing header data
  * @returns Header parse result with type and parsed data
  */
@@ -338,30 +337,30 @@ export function parseHeader(data: Buffer): HeaderParseResult {
       return {
         success: false,
         error: 'Buffer too small to contain header',
-        fileType: 'unknown'
+        fileType: 'unknown',
       };
     }
-    
+
     const fileType = detectFileType(data);
     const length = data.readUInt8(0);
-    
+
     if (data.length < length) {
       return {
         success: false,
         error: `Buffer size (${data.length}) is smaller than header length (${length})`,
-        fileType
+        fileType,
       };
     }
-    
+
     const rawBytes = data.subarray(0, length);
-    
+
     if (fileType === 'bitmap') {
       const header = parseBitmapHeader(data);
       return {
         success: true,
         fileType: 'bitmap',
         header,
-        rawBytes
+        rawBytes,
       };
     } else if (fileType === 'vector') {
       const header = parseVectorHeader(data);
@@ -369,27 +368,27 @@ export function parseHeader(data: Buffer): HeaderParseResult {
         success: true,
         fileType: 'vector',
         header,
-        rawBytes
+        rawBytes,
       };
     }
-    
+
     return {
       success: false,
       error: `Unknown file type: fileFlag=${data.readUInt8(1)}`,
-      fileType: 'unknown'
+      fileType: 'unknown',
     };
   } catch (error) {
     return {
       success: false,
       error: `Parse error: ${error instanceof Error ? error.message : String(error)}`,
-      fileType: 'unknown'
+      fileType: 'unknown',
     };
   }
 }
 
 /**
  * Parses a font header from a file path
- * 
+ *
  * @param filePath - Path to the .font or .bin file
  * @returns Header parse result
  */
@@ -399,17 +398,17 @@ export function parseHeaderFromFile(filePath: string): HeaderParseResult {
       return {
         success: false,
         error: `File not found: ${filePath}`,
-        fileType: 'unknown'
+        fileType: 'unknown',
       };
     }
-    
+
     const data = fs.readFileSync(filePath);
     return parseHeader(data);
   } catch (error) {
     return {
       success: false,
       error: `File read error: ${error instanceof Error ? error.message : String(error)}`,
-      fileType: 'unknown'
+      fileType: 'unknown',
     };
   }
 }

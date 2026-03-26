@@ -22,25 +22,25 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:unit": "jest --testPathPattern='.test.ts$' --testPathIgnorePatterns='properties|integration|e2e|compatibility'",
-    "test:properties": "jest --testPathPattern='properties.test.ts$'",
-    "test:integration": "jest --testPathPattern='integration.test.ts$|e2e.test.ts$'",
+    "test:unit": "jest --testPathPattern=.test.ts$ --testPathIgnorePatterns=properties --testPathIgnorePatterns=integration --testPathIgnorePatterns=e2e --testPathIgnorePatterns=compatibility",
+    "test:properties": "jest --testPathPattern=properties.test.ts$",
+    "test:integration": "jest --testPathPattern=integration.test.ts$ --testPathPattern=e2e.test.ts$",
     "test:compatibility": "jest --testPathPattern='compatibility.test.ts$'",
     "test:compat:quick": "npx ts-node tests/compatibility/run-all.ts --quick",
     "test:compat:full": "npx ts-node tests/compatibility/run-all.ts",
     "test:compat:gen-cpp": "npx ts-node tests/compatibility/run-cpp.ts",
     "test:compat:gen-ts": "npx ts-node tests/compatibility/run-ts.ts",
     "test:compat:compare": "npx ts-node tests/compatibility/compare.ts",
-    "lint": "eslint src/**/*.ts tests/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
-    "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts'",
-    "format:check": "prettier --check 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src tests",
+    "format:check": "prettier --check src tests",
     "typecheck": "tsc --noEmit",
     "pack:deploy": "node scripts/pack-deploy.js",
     "pack:deploy:zip": "node scripts/pack-deploy.js --zip"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "commander": "^11.0.0",

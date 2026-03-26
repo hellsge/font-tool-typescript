@@ -1,6 +1,6 @@
 /**
  * Unit tests for FontParser class
- * 
+ *
  * Tests TrueType font loading and error handling
  * Requirements: 6.1, 6.2, 6.6
  */
@@ -86,7 +86,7 @@ describe('FontParser', () => {
       const parser = new FontParser();
 
       await expect(parser.load('/non/existent/font.ttf')).rejects.toThrow(FontConverterError);
-      
+
       try {
         await parser.load('/non/existent/font.ttf');
       } catch (error) {
@@ -101,7 +101,7 @@ describe('FontParser', () => {
       const invalidPath = path.resolve(__dirname, '../package.json');
 
       await expect(parser.load(invalidPath)).rejects.toThrow(FontConverterError);
-      
+
       try {
         await parser.load(invalidPath);
       } catch (error) {
@@ -146,7 +146,7 @@ describe('FontParser', () => {
 
     it('should return false for non-existent glyphs', () => {
       // Private use area character unlikely to exist
-      expect(parser.hasGlyph(0xE000)).toBe(false);
+      expect(parser.hasGlyph(0xe000)).toBe(false);
     });
 
     it('should get glyph outline for existing character', () => {
@@ -161,7 +161,7 @@ describe('FontParser', () => {
     });
 
     it('should return null for non-existent glyph', () => {
-      const outline = parser.getGlyphOutline(0xE000);
+      const outline = parser.getGlyphOutline(0xe000);
       expect(outline).toBeNull();
     });
 
@@ -312,7 +312,7 @@ describe('FontParser', () => {
       const outline = parser.getGlyphOutline(0x0041); // 'A'
 
       expect(outline).not.toBeNull();
-      
+
       // Check all required fields exist
       expect(outline!.unicode).toBeDefined();
       expect(outline!.boundingBox).toBeDefined();
@@ -358,7 +358,7 @@ describe('FontParser', () => {
           expect(typeof point.x).toBe('number');
           expect(typeof point.y).toBe('number');
           expect(typeof point.onCurve).toBe('boolean');
-          
+
           // Coordinates should be integers (rounded)
           expect(Number.isInteger(point.x)).toBe(true);
           expect(Number.isInteger(point.y)).toBe(true);
@@ -380,11 +380,11 @@ describe('FontParser', () => {
       const bAdvance = outlineB!.advanceWidth;
 
       // At least one property should differ
-      const isDifferent = 
-        aContourCount !== bContourCount || 
+      const isDifferent =
+        aContourCount !== bContourCount ||
         aAdvance !== bAdvance ||
         JSON.stringify(outlineA!.boundingBox) !== JSON.stringify(outlineB!.boundingBox);
-      
+
       expect(isDifferent).toBe(true);
     });
 
@@ -405,12 +405,12 @@ describe('FontParser', () => {
       const testChars = [
         { unicode: 0x0030, name: 'digit 0' },
         { unicode: 0x0061, name: 'lowercase a' },
-        { unicode: 0x002E, name: 'period' },
+        { unicode: 0x002e, name: 'period' },
       ];
 
       for (const { unicode, name } of testChars) {
         const outline = parser.getGlyphOutline(unicode);
-        
+
         if (outline !== null) {
           expect(outline.unicode).toBe(unicode);
           expect(outline.advanceWidth).toBeGreaterThanOrEqual(0);
@@ -438,7 +438,7 @@ describe('FontParser', () => {
     });
 
     it('should mark on-curve and off-curve points correctly', () => {
-      const outline = parser.getGlyphOutline(0x004F); // 'O' - typically has curves
+      const outline = parser.getGlyphOutline(0x004f); // 'O' - typically has curves
 
       expect(outline).not.toBeNull();
 

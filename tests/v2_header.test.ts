@@ -5,7 +5,11 @@
  * Task 1.3 (V2 header serialization/deserialization)
  */
 
-import { BitmapFontHeader, BitmapFontHeaderConfig, calculateStandardDimensions } from '../src/bitmap-font-header';
+import {
+  BitmapFontHeader,
+  BitmapFontHeaderConfig,
+  calculateStandardDimensions,
+} from '../src/bitmap-font-header';
 import { RenderMode, IndexMethod, GlyphHeaderV2 } from '../src/types';
 import { VERSION } from '../src/constants';
 
@@ -143,7 +147,7 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     const parsed = BitmapFontHeader.fromBytes(bytes);
 
     expect(parsed.isV2).toBe(true);
-    expect(parsed.versionMajor).toBe(2);
+    expect(parsed.versionMajor).toBe(3);
     expect(parsed.versionMinor).toBe(0);
     expect(parsed.versionRevision).toBe(0);
     expect(parsed.versionBuildnum).toBe(0);
@@ -163,10 +167,10 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     expect(bytes[0]).toBe(header.length);
   });
 
-  it('writes version {2,0,0,0} at offsets 2-5', () => {
+  it('writes version {3,0,0,0} at offsets 2-5', () => {
     const header = new BitmapFontHeader(makeV2Config());
     const bytes = header.toBytes();
-    expect(bytes[2]).toBe(2);
+    expect(bytes[2]).toBe(3);
     expect(bytes[3]).toBe(0);
     expect(bytes[4]).toBe(0);
     expect(bytes[5]).toBe(0);
@@ -183,7 +187,7 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     const config = makeV2Config({
       fontName: 'AB',
       ascender: 0x0100, // 256
-      descender: -256,  // 0xFF00 as int16
+      descender: -256, // 0xFF00 as int16
       lineGap: 0,
       unitsPerEm: 2048,
     });
@@ -193,9 +197,9 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     // Extension starts after fontName null-terminated
     // CONFIG_SIZE(12) + 2(length+fontNameLength) + fontNameLength(3='AB\0')
     const extOffset = 12 + 2 + 3;
-    expect(bytes.readInt16LE(extOffset)).toBe(256);      // ascender
-    expect(bytes.readInt16LE(extOffset + 2)).toBe(-256);  // descender
-    expect(bytes.readInt16LE(extOffset + 4)).toBe(0);     // lineGap
+    expect(bytes.readInt16LE(extOffset)).toBe(256); // ascender
+    expect(bytes.readInt16LE(extOffset + 2)).toBe(-256); // descender
+    expect(bytes.readInt16LE(extOffset + 4)).toBe(0); // lineGap
     expect(bytes.readUInt16LE(extOffset + 6)).toBe(2048); // unitsPerEm
   });
 });

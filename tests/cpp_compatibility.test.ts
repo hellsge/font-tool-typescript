@@ -1,11 +1,11 @@
 /**
  * C++ Compatibility Tests
- * 
+ *
  * Property 14: Binary Format 与 C++ 兼容
- * 
+ *
  * Validates that TypeScript implementation generates byte-identical output
  * to the C++ reference implementation (version 1.0.2).
- * 
+ *
  * Task: 18.2
  * Validates: Requirements 5.2, 5.3
  */
@@ -101,10 +101,14 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
     let lineGap: number | undefined;
     let unitsPerEm: number | undefined;
     if (versionMajor >= 2 && offset + 8 <= buffer.length) {
-      ascender = buffer.readInt16LE(offset); offset += 2;
-      descender = buffer.readInt16LE(offset); offset += 2;
-      lineGap = buffer.readInt16LE(offset); offset += 2;
-      unitsPerEm = buffer.readUInt16LE(offset); offset += 2;
+      ascender = buffer.readInt16LE(offset);
+      offset += 2;
+      descender = buffer.readInt16LE(offset);
+      offset += 2;
+      lineGap = buffer.readInt16LE(offset);
+      offset += 2;
+      unitsPerEm = buffer.readUInt16LE(offset);
+      offset += 2;
     }
 
     return {
@@ -127,7 +131,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       descender,
       lineGap,
       unitsPerEm,
-      headerEndOffset: offset
+      headerEndOffset: offset,
     };
   }
 
@@ -211,13 +215,13 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       descent,
       lineGap,
       fontName,
-      headerEndOffset: offset
+      headerEndOffset: offset,
     };
   }
 
   /**
    * Parse .cst character set file
-   * 
+   *
    * .cst files are binary files containing raw uint16_t values (little-endian),
    * each representing a Unicode code point. There is NO count header.
    */
@@ -259,11 +263,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -273,7 +277,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
 
       // Find generated .bin file
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       // Parse header
@@ -319,11 +323,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0030-0x0039' // 0-9
-              }
-            ]
-          }
-        ]
+                value: '0x0030-0x0039', // 0-9
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -332,7 +336,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
@@ -366,11 +370,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -379,7 +383,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const header = parseVectorHeader(path.join(testOutputDir, binFile!));
@@ -420,11 +424,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0030-0x0039' // 0-9 (10 characters)
-              }
-            ]
-          }
-        ]
+                value: '0x0030-0x0039', // 0-9 (10 characters)
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -433,7 +437,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const header = parseVectorHeader(path.join(testOutputDir, binFile!));
@@ -467,11 +471,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -481,7 +485,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
 
       // Find generated .cst file
       const files = fs.readdirSync(testOutputDir);
-      const cstFile = files.find(f => f.endsWith('.cst'));
+      const cstFile = files.find((f) => f.endsWith('.cst'));
       expect(cstFile).toBeDefined();
 
       // Parse .cst file
@@ -493,7 +497,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       // Verify characters are in expected range
       for (const char of characters) {
         expect(char).toBeGreaterThanOrEqual(0x0041);
-        expect(char).toBeLessThanOrEqual(0x005A);
+        expect(char).toBeLessThanOrEqual(0x005a);
       }
 
       // Verify characters are sorted
@@ -523,11 +527,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F (6 characters)
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F (6 characters)
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -536,7 +540,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
@@ -553,15 +557,15 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       for (let unicode = 0x0041; unicode <= 0x0046; unicode++) {
         const offset = indexStart + unicode * 4;
         const fileOffset = buffer.readUInt32LE(offset);
-        
+
         // Should have a valid file offset (not 0xFFFFFFFF)
-        expect(fileOffset).not.toBe(0xFFFFFFFF);
+        expect(fileOffset).not.toBe(0xffffffff);
       }
 
       // Check that unused entries are initialized to 0xFFFFFFFF
       const unusedOffset = indexStart + 0x0100 * 4; // Check entry at 0x0100
       const unusedValue = buffer.readUInt32LE(unusedOffset);
-      expect(unusedValue).toBe(0xFFFFFFFF);
+      expect(unusedValue).toBe(0xffffffff);
     }, 30000);
 
     it('should generate offset mode index array compatible with C++', async () => {
@@ -583,11 +587,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F (6 characters)
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F (6 characters)
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -596,7 +600,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
@@ -649,11 +653,11 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0042' // A-B
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0042', // A-B
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -662,7 +666,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));

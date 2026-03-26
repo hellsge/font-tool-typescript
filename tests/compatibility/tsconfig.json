@@ -12,10 +12,6 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": [
-    "framework/**/*",
-    "*.ts",
-    "../../src/**/*"
-  ],
+  "include": ["framework/**/*", "*.ts", "../../src/**/*"],
   "exclude": ["node_modules"]
 }

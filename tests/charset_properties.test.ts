@@ -164,10 +164,7 @@ describe('Feature: typescript-font-converter, Property 12: 字符源合并和去
    */
   const unicodeRangeArbitrary = (): fc.Arbitrary<string> => {
     return fc
-      .tuple(
-        fc.integer({ min: 0, max: 0xfffe }),
-        fc.integer({ min: 1, max: 100 })
-      )
+      .tuple(fc.integer({ min: 0, max: 0xfffe }), fc.integer({ min: 1, max: 100 }))
       .map(([start, length]) => {
         const end = Math.min(start + length, BINARY_FORMAT.MAX_UNICODE);
         return `0x${start.toString(16).toUpperCase().padStart(4, '0')}-0x${end.toString(16).toUpperCase().padStart(4, '0')}`;
@@ -183,98 +180,85 @@ describe('Feature: typescript-font-converter, Property 12: 字符源合并和去
 
   it('should merge range sources without duplicates', () => {
     fc.assert(
-      fc.property(
-        fc.array(unicodeRangeArbitrary(), { minLength: 1, maxLength: 5 }),
-        (ranges) => {
-          const sources: CharacterSetSource[] = ranges.map((r) => ({
-            type: 'range' as const,
-            value: r
-          }));
+      fc.property(fc.array(unicodeRangeArbitrary(), { minLength: 1, maxLength: 5 }), (ranges) => {
+        const sources: CharacterSetSource[] = ranges.map((r) => ({
+          type: 'range' as const,
+          value: r,
+        }));
 
-          const result = CharsetProcessor.mergeCharacterSources(sources);
+        const result = CharsetProcessor.mergeCharacterSources(sources);
 
-          // Result should be sorted
-          for (let i = 1; i < result.length; i++) {
-            expect(result[i]).toBeGreaterThan(result[i - 1]);
-          }
-
-          // Result should have no duplicates
-          const uniqueSet = new Set(result);
-          expect(uniqueSet.size).toBe(result.length);
-
-          return true;
+        // Result should be sorted
+        for (let i = 1; i < result.length; i++) {
+          expect(result[i]).toBeGreaterThan(result[i - 1]);
         }
-      ),
+
+        // Result should have no duplicates
+        const uniqueSet = new Set(result);
+        expect(uniqueSet.size).toBe(result.length);
+
+        return true;
+      }),
       { numRuns: 100 }
     );
   });
 
   it('should merge string sources without duplicates', () => {
     fc.assert(
-      fc.property(
-        fc.array(stringSourceArbitrary(), { minLength: 1, maxLength: 5 }),
-        (strings) => {
-          const sources: CharacterSetSource[] = strings.map((s) => ({
-            type: 'string' as const,
-            value: s
-          }));
+      fc.property(fc.array(stringSourceArbitrary(), { minLength: 1, maxLength: 5 }), (strings) => {
+        const sources: CharacterSetSource[] = strings.map((s) => ({
+          type: 'string' as const,
+          value: s,
+        }));
 
-          const result = CharsetProcessor.mergeCharacterSources(sources);
+        const result = CharsetProcessor.mergeCharacterSources(sources);
 
-          // Result should be sorted
-          for (let i = 1; i < result.length; i++) {
-            expect(result[i]).toBeGreaterThan(result[i - 1]);
-          }
+        // Result should be sorted
+        for (let i = 1; i < result.length; i++) {
+          expect(result[i]).toBeGreaterThan(result[i - 1]);
+        }
 
-          // Result should have no duplicates
-          const uniqueSet = new Set(result);
-          expect(uniqueSet.size).toBe(result.length);
+        // Result should have no duplicates
+        const uniqueSet = new Set(result);
+        expect(uniqueSet.size).toBe(result.length);
 
-          // All characters from all strings should be in result
-          for (const str of strings) {
-            for (const char of str) {
-              const codePoint = char.codePointAt(0);
-              if (
-                codePoint !== undefined &&
-                codePoint <= BINARY_FORMAT.MAX_UNICODE
-              ) {
-                expect(result).toContain(codePoint);
-              }
+        // All characters from all strings should be in result
+        for (const str of strings) {
+          for (const char of str) {
+            const codePoint = char.codePointAt(0);
+            if (codePoint !== undefined && codePoint <= BINARY_FORMAT.MAX_UNICODE) {
+              expect(result).toContain(codePoint);
             }
           }
-
-          return true;
         }
-      ),
+
+        return true;
+      }),
       { numRuns: 100 }
     );
   });
 
   it('should merge mixed sources (range + string) without duplicates', () => {
     fc.assert(
-      fc.property(
-        unicodeRangeArbitrary(),
-        stringSourceArbitrary(),
-        (range, str) => {
-          const sources: CharacterSetSource[] = [
-            { type: 'range' as const, value: range },
-            { type: 'string' as const, value: str }
-          ];
+      fc.property(unicodeRangeArbitrary(), stringSourceArbitrary(), (range, str) => {
+        const sources: CharacterSetSource[] = [
+          { type: 'range' as const, value: range },
+          { type: 'string' as const, value: str },
+        ];
 
-          const result = CharsetProcessor.mergeCharacterSources(sources);
+        const result = CharsetProcessor.mergeCharacterSources(sources);
 
-          // Result should be sorted
-          for (let i = 1; i < result.length; i++) {
-            expect(result[i]).toBeGreaterThan(result[i - 1]);
-          }
-
-          // Result should have no duplicates
-          const uniqueSet = new Set(result);
-          expect(uniqueSet.size).toBe(result.length);
-
-          return true;
+        // Result should be sorted
+        for (let i = 1; i < result.length; i++) {
+          expect(result[i]).toBeGreaterThan(result[i - 1]);
         }
-      ),
+
+        // Result should have no duplicates
+        const uniqueSet = new Set(result);
+        expect(uniqueSet.size).toBe(result.length);
+
+        return true;
+      }),
       { numRuns: 100 }
     );
   });
@@ -299,15 +283,12 @@ describe('Feature: typescript-font-converter, Property 12: 字符源合并和去
 
               sources.push({
                 type: 'file' as const,
-                value: cstPath
+                value: cstPath,
               });
 
               // Track expected unicodes
               for (const u of unicodeArrays[i]) {
-                const clamped = Math.min(
-                  Math.max(0, Math.floor(u)),
-                  BINARY_FORMAT.MAX_UNICODE
-                );
+                const clamped = Math.min(Math.max(0, Math.floor(u)), BINARY_FORMAT.MAX_UNICODE);
                 allExpectedUnicodes.add(clamped);
               }
             }
@@ -350,10 +331,7 @@ describe('Unicode Range Parsing', () => {
   it('should parse valid range strings', () => {
     fc.assert(
       fc.property(
-        fc.tuple(
-          fc.integer({ min: 0, max: 0xfffe }),
-          fc.integer({ min: 1, max: 100 })
-        ),
+        fc.tuple(fc.integer({ min: 0, max: 0xfffe }), fc.integer({ min: 1, max: 100 })),
         ([start, length]) => {
           const end = Math.min(start + length, BINARY_FORMAT.MAX_UNICODE);
           const rangeStr = `0x${start.toString(16).padStart(4, '0')}-0x${end.toString(16).padStart(4, '0')}`;
@@ -387,13 +365,11 @@ describe('Unicode Range Parsing', () => {
       '0x007F-0x0020', // end < start
       '0xFFFF-0x10000', // out of range
       '-0x007F',
-      '0x0020-'
+      '0x0020-',
     ];
 
     for (const range of invalidRanges) {
-      expect(() => CharsetProcessor.parseUnicodeRange(range)).toThrow(
-        FontConverterError
-      );
+      expect(() => CharsetProcessor.parseUnicodeRange(range)).toThrow(FontConverterError);
     }
   });
 });
@@ -414,10 +390,7 @@ describe('String Character Extraction', () => {
         // All characters from string should be in result
         for (const char of str) {
           const codePoint = char.codePointAt(0);
-          if (
-            codePoint !== undefined &&
-            codePoint <= BINARY_FORMAT.MAX_UNICODE
-          ) {
+          if (codePoint !== undefined && codePoint <= BINARY_FORMAT.MAX_UNICODE) {
             expect(result).toContain(codePoint);
           }
         }

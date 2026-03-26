@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 /**
  * Tool Verification Script
- * 
+ *
  * Verifies that all compatibility testing tools are available and can be imported.
- * 
+ *
  * Usage:
  *   npx ts-node tests/compatibility/verify-tools.ts
  */
@@ -17,7 +17,7 @@ const COLORS = {
   red: '\x1b[31m',
   yellow: '\x1b[33m',
   cyan: '\x1b[36m',
-  bright: '\x1b[1m'
+  bright: '\x1b[1m',
 };
 
 function print(message: string, color: string = COLORS.reset): void {
@@ -40,9 +40,9 @@ async function main() {
   print('Compatibility Testing Tools Verification', COLORS.cyan + COLORS.bright);
   print('═'.repeat(60), COLORS.cyan);
   console.log('');
-  
+
   const results: boolean[] = [];
-  
+
   // Verify framework tools
   print('Framework Tools:', COLORS.cyan);
   results.push(await verifyTool('header-parser', () => import('./framework/header-parser')));
@@ -53,18 +53,18 @@ async function main() {
   results.push(await verifyTool('report-generator', () => import('./framework/report-generator')));
   results.push(await verifyTool('report-analyzer', () => import('./framework/report-analyzer')));
   console.log('');
-  
+
   // Verify diagnostic tools
   print('Diagnostic Tools:', COLORS.cyan);
   results.push(await verifyTool('diagnose', () => import('./diagnose')));
   console.log('');
-  
+
   // Verify framework index exports
   print('Framework Index Exports:', COLORS.cyan);
   try {
     const framework = await import('./framework');
     const exports = Object.keys(framework);
-    
+
     const requiredExports = [
       'parseHeader',
       'compareHeaders',
@@ -76,9 +76,9 @@ async function main() {
       'generateJsonReport',
       'formatConsoleReport',
       'TestReportAnalyzer',
-      'createReportAnalyzer'
+      'createReportAnalyzer',
     ];
-    
+
     let allExportsFound = true;
     for (const exportName of requiredExports) {
       if (exports.includes(exportName)) {
@@ -88,19 +88,22 @@ async function main() {
         allExportsFound = false;
       }
     }
-    
+
     results.push(allExportsFound);
   } catch (error) {
-    print(`  ✗ Framework index: ${error instanceof Error ? error.message : String(error)}`, COLORS.red);
+    print(
+      `  ✗ Framework index: ${error instanceof Error ? error.message : String(error)}`,
+      COLORS.red
+    );
     results.push(false);
   }
   console.log('');
-  
+
   // Summary
   print('═'.repeat(60), COLORS.cyan);
-  const passed = results.filter(r => r).length;
+  const passed = results.filter((r) => r).length;
   const total = results.length;
-  
+
   if (passed === total) {
     print(`✓ All tools verified successfully (${passed}/${total})`, COLORS.green + COLORS.bright);
     print('═'.repeat(60), COLORS.cyan);
@@ -113,7 +116,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Verification failed:', error);
     process.exit(1);
   });

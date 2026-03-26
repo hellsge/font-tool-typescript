@@ -1,6 +1,6 @@
 /**
  * Config Converter - Converts TypeScript configs to C++ format
- * 
+ *
  * This module converts TypeScript font converter configs to C++ fontDictionary.exe format
  */
 
@@ -60,15 +60,15 @@ export interface CppTestConfig {
 
 /**
  * Converts a character range string to customerVals format
- * 
+ *
  * CRITICAL: C++ expects 'range' to be the CHARACTER COUNT, not the end value!
- * 
+ *
  * C++ code: for (int i = item.firstVal; i < item.firstVal + item.range; ++i)
- * 
+ *
  * Example:
  *   Input: "0x0061-0x007A" (a-z)
  *   Output: { firstVal: "0x0061", range: "0x1A" }  // 0x1A = 26 characters
- * 
+ *
  * @param rangeStr - Range string like "0x0061-0x007A"
  * @returns customerVals array with correct character count
  */
@@ -77,19 +77,21 @@ function convertCharacterRange(rangeStr: string): Array<{ firstVal: string; rang
   if (match) {
     const start = parseInt(match[1], 16);
     const end = parseInt(match[2], 16);
-    const count = end - start + 1;  // Calculate character count (inclusive range)
-    
-    return [{
-      firstVal: `0x${match[1]}`,
-      range: `0x${count.toString(16)}`  // Use character count, not end value!
-    }];
+    const count = end - start + 1; // Calculate character count (inclusive range)
+
+    return [
+      {
+        firstVal: `0x${match[1]}`,
+        range: `0x${count.toString(16)}`, // Use character count, not end value!
+      },
+    ];
   }
   return [];
 }
 
 /**
  * Converts TypeScript config to C++ test config
- * 
+ *
  * @param tsConfig - TypeScript config
  * @param name - Test case name
  * @param description - Test case description
@@ -101,13 +103,13 @@ export function convertTsToCppConfig(
   description: string
 ): CppTestConfig {
   const font = tsConfig.fonts[0];
-  
+
   // Extract font filename from path
   const fontFileName = path.basename(font.fontPath);
-  
+
   // Convert output format
   const outputFormat = font.outputFormat === 'bitmap' ? 0 : 1;
-  
+
   // Convert character sets to customerVals
   const customerVals: Array<{ firstVal: string; range: string }> = [];
   for (const charSet of font.characterSets) {
@@ -115,7 +117,7 @@ export function convertTsToCppConfig(
       customerVals.push(...convertCharacterRange(charSet.value));
     }
   }
-  
+
   return {
     name,
     description,
@@ -129,54 +131,52 @@ export function convertTsToCppConfig(
         italic: font.italic || false,
         indexMethod: font.indexMethod,
         crop: font.crop ? 1 : 0,
-        outputFormat
+        outputFormat,
       },
       customerVals,
       codePages: [],
       cstPaths: [],
-      symbolPaths: []
-    }
+      symbolPaths: [],
+    },
   };
 }
 
 /**
  * Loads and converts a TypeScript config file to C++ format
- * 
+ *
  * @param configPath - Path to TypeScript config file
  * @returns C++ test config
  */
 export function loadAndConvertConfig(configPath: string): CppTestConfig {
   const content = fs.readFileSync(configPath, 'utf-8');
   const tsConfig = JSON.parse(content) as TsConfig;
-  
+
   // Extract name from filename
   const name = path.basename(configPath, '.json');
-  
+
   // Generate description based on name
   const description = `Test case: ${name}`;
-  
+
   return convertTsToCppConfig(tsConfig, name, description);
 }
 
 /**
  * Loads all TypeScript configs and converts them to C++ format
- * 
+ *
  * @param configsDir - Path to configs directory
  * @returns Array of C++ test configs
  */
 export function loadAllConvertedConfigs(configsDir: string): CppTestConfig[] {
   const configs: CppTestConfig[] = [];
-  
+
   if (!fs.existsSync(configsDir)) {
     return configs;
   }
-  
-  const files = fs.readdirSync(configsDir).filter(f => 
-    f.endsWith('.json') && 
-    f !== '.gitkeep' && 
-    f !== 'test-cases.json'
-  );
-  
+
+  const files = fs
+    .readdirSync(configsDir)
+    .filter((f) => f.endsWith('.json') && f !== '.gitkeep' && f !== 'test-cases.json');
+
   for (const file of files) {
     try {
       const config = loadAndConvertConfig(path.join(configsDir, file));
@@ -185,6 +185,6 @@ export function loadAllConvertedConfigs(configsDir: string): CppTestConfig[] {
       console.warn(`Warning: Failed to load and convert config ${file}: ${error}`);
     }
   }
-  
+
   return configs;
 }

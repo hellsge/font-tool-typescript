@@ -1,7 +1,7 @@
 /**
  * Unit tests for INI settings parsing and merging
  * Feature: typescript-font-converter
- * 
+ *
  * Tests INI file parsing and configuration override functionality.
  * Validates: Requirements 1.4
  */
@@ -10,12 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { ConfigManager } from '../src/config';
-import {
-  FontConfig,
-  RenderMode,
-  Rotation,
-  IndexMethod
-} from '../src/types';
+import { FontConfig, RenderMode, Rotation, IndexMethod } from '../src/types';
 import { ErrorCode, FontConverterError } from '../src/errors';
 
 /**
@@ -34,7 +29,7 @@ function createValidConfig(): FontConfig {
     indexMethod: IndexMethod.ADDRESS,
     crop: false,
     characterSets: [{ type: 'file', value: 'charset.cst' }],
-    outputFormat: 'bitmap'
+    outputFormat: 'bitmap',
   };
 }
 
@@ -68,7 +63,7 @@ describe('INI Settings Parsing (Requirements 1.4)', () => {
 gamma=1.5
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.gamma).toBe(1.5);
@@ -82,7 +77,7 @@ gamma=1.5
 rotation=1
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.rotation).toBe(Rotation.ROTATE_90);
@@ -97,7 +92,7 @@ gamma=2.0
 rotation=3
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.gamma).toBe(2.0);
@@ -112,7 +107,7 @@ rotation=3
 value=123
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.gamma).toBeUndefined();
@@ -123,8 +118,9 @@ value=123
     });
 
     it('should throw error for non-existent INI file', async () => {
-      await expect(ConfigManager.loadINISettings('/non/existent/path.ini'))
-        .rejects.toThrow(FontConverterError);
+      await expect(ConfigManager.loadINISettings('/non/existent/path.ini')).rejects.toThrow(
+        FontConverterError
+      );
     });
 
     it('should handle INI file with only gamma', async () => {
@@ -132,7 +128,7 @@ value=123
 gamma=0.8
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.gamma).toBe(0.8);
@@ -147,7 +143,7 @@ gamma=0.8
 rotation=2
 `;
       const iniPath = await createTempINIFile(iniContent);
-      
+
       try {
         const settings = await ConfigManager.loadINISettings(iniPath);
         expect(settings.gamma).toBeUndefined();
@@ -162,10 +158,10 @@ rotation=2
     it('should override gamma from INI settings', () => {
       const config = createValidConfig();
       config.gamma = 1.0;
-      
+
       const iniSettings = { gamma: 2.5 };
       const merged = ConfigManager.mergeINISettings(config, iniSettings);
-      
+
       expect(merged.gamma).toBe(2.5);
       expect(merged.rotation).toBe(config.rotation); // Unchanged
     });
@@ -173,10 +169,10 @@ rotation=2
     it('should override rotation from INI settings', () => {
       const config = createValidConfig();
       config.rotation = Rotation.ROTATE_0;
-      
+
       const iniSettings = { rotation: Rotation.ROTATE_90 };
       const merged = ConfigManager.mergeINISettings(config, iniSettings);
-      
+
       expect(merged.rotation).toBe(Rotation.ROTATE_90);
       expect(merged.gamma).toBe(config.gamma); // Unchanged
     });
@@ -185,10 +181,10 @@ rotation=2
       const config = createValidConfig();
       config.gamma = 1.0;
       config.rotation = Rotation.ROTATE_0;
-      
+
       const iniSettings = { gamma: 1.8, rotation: Rotation.ROTATE_180 };
       const merged = ConfigManager.mergeINISettings(config, iniSettings);
-      
+
       expect(merged.gamma).toBe(1.8);
       expect(merged.rotation).toBe(Rotation.ROTATE_180);
     });
@@ -197,10 +193,10 @@ rotation=2
       const config = createValidConfig();
       config.gamma = 1.5;
       config.rotation = Rotation.ROTATE_90;
-      
+
       const iniSettings = {};
       const merged = ConfigManager.mergeINISettings(config, iniSettings);
-      
+
       expect(merged.gamma).toBe(1.5);
       expect(merged.rotation).toBe(Rotation.ROTATE_90);
     });
@@ -209,7 +205,7 @@ rotation=2
       const config = createValidConfig();
       const iniSettings = { gamma: 2.0, rotation: Rotation.ROTATE_180 };
       const merged = ConfigManager.mergeINISettings(config, iniSettings);
-      
+
       // Check that other properties are unchanged
       expect(merged.fontPath).toBe(config.fontPath);
       expect(merged.outputPath).toBe(config.outputPath);

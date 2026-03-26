@@ -1,9 +1,9 @@
 /**
  * End-to-End Integration Tests
- * 
+ *
  * Tests complete font generation workflows from configuration to output files.
  * Validates that all components work together correctly.
- * 
+ *
  * Task: 18.1
  */
 
@@ -57,11 +57,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0020-0x007E' // Basic ASCII
-              }
-            ]
-          }
-        ]
+                value: '0x0020-0x007E', // Basic ASCII
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -74,8 +74,8 @@ describe('E2E Integration Tests', () => {
 
       // Verify output files exist
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
-      const cstFiles = files.filter(f => f.endsWith('.cst'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
+      const cstFiles = files.filter((f) => f.endsWith('.cst'));
 
       expect(binFiles.length).toBeGreaterThan(0);
       expect(cstFiles.length).toBeGreaterThan(0);
@@ -110,11 +110,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -125,7 +125,7 @@ describe('E2E Integration Tests', () => {
 
       // Verify output files
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
       expect(binFiles.length).toBeGreaterThan(0);
     }, 30000);
 
@@ -148,11 +148,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0030-0x0039' // 0-9
-              }
-            ]
-          }
-        ]
+                value: '0x0030-0x0039', // 0-9
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -162,7 +162,7 @@ describe('E2E Integration Tests', () => {
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
       expect(binFiles.length).toBeGreaterThan(0);
     }, 30000);
 
@@ -185,11 +185,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -199,7 +199,7 @@ describe('E2E Integration Tests', () => {
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
       expect(binFiles.length).toBeGreaterThan(0);
     }, 30000);
   });
@@ -224,11 +224,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0020-0x007E' // Basic ASCII
-              }
-            ]
-          }
-        ]
+                value: '0x0020-0x007E', // Basic ASCII
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -239,8 +239,8 @@ describe('E2E Integration Tests', () => {
 
       // Verify output files
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
-      const cstFiles = files.filter(f => f.endsWith('.cst'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
+      const cstFiles = files.filter((f) => f.endsWith('.cst'));
 
       expect(binFiles.length).toBeGreaterThan(0);
       expect(cstFiles.length).toBeGreaterThan(0);
@@ -270,11 +270,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -284,7 +284,7 @@ describe('E2E Integration Tests', () => {
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
       expect(binFiles.length).toBeGreaterThan(0);
     }, 30000);
   });
@@ -309,9 +309,9 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
           },
           {
             fontPath: testFontPath,
@@ -328,9 +328,9 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0030-0x0039' // 0-9
-              }
-            ]
+                value: '0x0030-0x0039', // 0-9
+              },
+            ],
           },
           {
             fontPath: testFontPath,
@@ -347,11 +347,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0061-0x007A' // a-z
-              }
-            ]
-          }
-        ]
+                value: '0x0061-0x007A', // a-z
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -362,8 +362,8 @@ describe('E2E Integration Tests', () => {
 
       // Verify multiple output files were created
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
-      const cstFiles = files.filter(f => f.endsWith('.cst'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
+      const cstFiles = files.filter((f) => f.endsWith('.cst'));
 
       // Should have 3 .bin files and 3 .cst files
       expect(binFiles.length).toBe(3);
@@ -389,19 +389,19 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
+                value: '0x0041-0x005A', // A-Z
               },
               {
                 type: 'range',
-                value: '0x0061-0x007A' // a-z
+                value: '0x0061-0x007A', // a-z
               },
               {
                 type: 'range',
-                value: '0x0030-0x0039' // 0-9
-              }
-            ]
-          }
-        ]
+                value: '0x0030-0x0039', // 0-9
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -411,7 +411,7 @@ describe('E2E Integration Tests', () => {
       expect(exitCode).toBe(0);
 
       const files = fs.readdirSync(testOutputDir);
-      const binFiles = files.filter(f => f.endsWith('.bin'));
+      const binFiles = files.filter((f) => f.endsWith('.bin'));
       expect(binFiles.length).toBeGreaterThan(0);
     }, 30000);
   });
@@ -436,11 +436,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A'
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A',
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -469,11 +469,11 @@ describe('E2E Integration Tests', () => {
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A'
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A',
+              },
+            ],
+          },
+        ],
       };
 
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));

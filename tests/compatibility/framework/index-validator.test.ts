@@ -1,6 +1,6 @@
 /**
  * Tests for Index Validator
- * 
+ *
  * Validates the index validation logic for both Address and Offset modes
  */
 
@@ -16,14 +16,14 @@ describe('Index Validator', () => {
       // For now, we'll skip it and rely on integration tests
       expect(true).toBe(true);
     });
-    
+
     it('should validate Offset mode index with N entries', () => {
       // This test requires actual binary files
       // For now, we'll skip it and rely on integration tests
       expect(true).toBe(true);
     });
   });
-  
+
   describe('formatIndexValidationResult', () => {
     it('should format validation result with errors', () => {
       const result = {
@@ -34,16 +34,16 @@ describe('Index Validator', () => {
         validMappings: 26,
         unusedEntries: 65510,
         errors: ['Test error'],
-        warnings: ['Test warning']
+        warnings: ['Test warning'],
       };
-      
+
       const formatted = formatIndexValidationResult(result);
       expect(formatted).toContain('Valid: ✗');
       expect(formatted).toContain('Index Method: ADDRESS');
       expect(formatted).toContain('Test error');
       expect(formatted).toContain('Test warning');
     });
-    
+
     it('should format validation result without errors', () => {
       const result = {
         valid: true,
@@ -53,15 +53,15 @@ describe('Index Validator', () => {
         validMappings: 26,
         unusedEntries: 0,
         errors: [],
-        warnings: []
+        warnings: [],
       };
-      
+
       const formatted = formatIndexValidationResult(result);
       expect(formatted).toContain('Valid: ✓');
       expect(formatted).toContain('Index Method: OFFSET');
     });
   });
-  
+
   describe('compareIndices', () => {
     it('should detect index method mismatch', () => {
       // This test requires actual binary files

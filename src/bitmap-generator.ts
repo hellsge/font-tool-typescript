@@ -1,11 +1,11 @@
 /**
  * Bitmap Font Generator (V2 — bearing-based tight bbox)
- * 
+ *
  * Generates bitmap font files from TrueType fonts using V2 format:
  * - 6-byte GlyphHeaderV2 per glyph (bearingX, bearingY, width, height, advance, reserved)
  * - Tight bounding box bitmap (no canvas padding)
  * - Typography metrics in header extension (ascender, descender, lineGap, unitsPerEm)
- * 
+ *
  * Supports multiple render modes (1/2/4/8-bit), styles (bold, italic),
  * gamma correction.
  */
@@ -13,18 +13,17 @@
 import * as fs from 'fs';
 import * as opentype from 'opentype.js';
 import { FontGenerator } from './font-generator';
-import { FontConfig, RenderMode, IndexMethod } from './types';
+import { FontConfig, IndexMethod } from './types';
 import { GlyphHeaderV2 } from './types/binary';
-import { BitmapFontHeader, BitmapFontHeaderConfig, calculateStandardDimensions } from './bitmap-font-header';
+import {
+  BitmapFontHeader,
+  BitmapFontHeaderConfig,
+  calculateStandardDimensions,
+} from './bitmap-font-header';
 import { BinaryWriter } from './binary-writer';
 import { ImageProcessor } from './image-processor';
-import {
-  BINARY_FORMAT,
-  FILE_NAMING,
-} from './constants';
-import {
-  createFileWriteError
-} from './errors';
+import { BINARY_FORMAT, FILE_NAMING } from './constants';
+import { createFileWriteError } from './errors';
 import { PathUtils } from './path-utils';
 
 /**
@@ -93,7 +92,10 @@ export class BitmapFontGenerator extends FontGenerator {
       await this.writeCharacterSetFile(baseName);
 
       if (this.failedCharacters.length > 0) {
-        const failedPath = PathUtils.join(this.config.outputPath, FILE_NAMING.UNSUPPORTED_CHARS_FILE);
+        const failedPath = PathUtils.join(
+          this.config.outputPath,
+          FILE_NAMING.UNSUPPORTED_CHARS_FILE
+        );
         this.trackPartialFile(failedPath);
         await this.writeFailedCharactersFile();
       }
@@ -149,7 +151,7 @@ export class BitmapFontGenerator extends FontGenerator {
 
   /**
    * Process a single glyph (bearing-based V2)
-   * 
+   *
    * Renders the glyph at fontSize (em-size), computes tight bounding box,
    * extracts bearing metrics from opentype.js, and packs the tight bbox bitmap.
    *
@@ -189,7 +191,7 @@ export class BitmapFontGenerator extends FontGenerator {
         width: 0,
         height: 0,
         advance: Math.max(0, Math.min(255, rawAdvance)),
-        reserved: 0
+        reserved: 0,
       };
       return { unicode, header, pixelData: new Uint8Array(0) };
     }
@@ -216,7 +218,10 @@ export class BitmapFontGenerator extends FontGenerator {
     }
 
     // Compute tight bounding box from the rendered bitmap
-    let minX = width, maxX = -1, minY = height, maxY = -1;
+    let minX = width,
+      maxX = -1,
+      minY = height,
+      maxY = -1;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (pixels[y * width + x] > 0) {
@@ -248,9 +253,10 @@ export class BitmapFontGenerator extends FontGenerator {
     }
 
     // Pack tight bbox pixels according to render mode
-    const packedPixels = (tightWidth > 0 && tightHeight > 0)
-      ? ImageProcessor.packPixels(tightPixels, tightWidth, tightHeight, this.config.renderMode)
-      : new Uint8Array(0);
+    const packedPixels =
+      tightWidth > 0 && tightHeight > 0
+        ? ImageProcessor.packPixels(tightPixels, tightWidth, tightHeight, this.config.renderMode)
+        : new Uint8Array(0);
 
     const header: GlyphHeaderV2 = {
       bearingX: Math.max(-128, Math.min(127, rawBearingX)),
@@ -258,7 +264,7 @@ export class BitmapFontGenerator extends FontGenerator {
       width: Math.max(0, Math.min(255, tightWidth)),
       height: Math.max(0, Math.min(255, tightHeight)),
       advance: Math.max(0, Math.min(255, rawAdvance)),
-      reserved: 0
+      reserved: 0,
     };
 
     return { unicode, header, pixelData: packedPixels };
@@ -300,8 +306,7 @@ export class BitmapFontGenerator extends FontGenerator {
     const ssPixels = new Uint8Array(ssWidth * ssHeight);
     const path = glyph.getPath(0, 0, ssFontSize);
 
-    this.rasterizePath(path, ssPixels, ssWidth, ssHeight,
-                       -x1 * ssScale, -screenY1 * ssScale);
+    this.rasterizePath(path, ssPixels, ssWidth, ssHeight, -x1 * ssScale, -screenY1 * ssScale);
 
     const pixels = this.downsampleBitmap(ssPixels, ssWidth, ssHeight, width, height, ssScale);
 
@@ -485,7 +490,7 @@ export class BitmapFontGenerator extends FontGenerator {
       indexMethod: this.config.indexMethod,
       crop: true, // V2 always crop
       characterCount: this.glyphs.size,
-      rvd: this.config.rvd || false
+      rvd: this.config.rvd || false,
     };
 
     if (this.parsedFont) {
@@ -501,7 +506,7 @@ export class BitmapFontGenerator extends FontGenerator {
 
   /**
    * Create the index array based on index method
-   * 
+   *
    * V2 always has crop=true, so only two modes:
    * 1. indexMethod=ADDRESS: 65536 × 4 bytes (file offsets)
    * 2. indexMethod=OFFSET: N × 6 bytes (unicode 2B + file offset 4B)
@@ -622,8 +627,7 @@ export class BitmapFontGenerator extends FontGenerator {
       });
     }
 
-    const sortedGlyphs = Array.from(this.glyphs.entries())
-      .sort((a, b) => a[0] - b[0]);
+    const sortedGlyphs = Array.from(this.glyphs.entries()).sort((a, b) => a[0] - b[0]);
 
     for (const [unicode, g] of sortedGlyphs) {
       const glyphOffset = writer.getOffset();
@@ -661,7 +665,7 @@ export class BitmapFontGenerator extends FontGenerator {
   getBaseGlyphDimensions(): { width: number; height: number } {
     return {
       width: this.baseGlyphWidth,
-      height: this.baseGlyphHeight
+      height: this.baseGlyphHeight,
     };
   }
 }
