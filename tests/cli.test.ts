@@ -1,6 +1,6 @@
 /**
  * Unit tests for CLI argument parsing
- * 
+ *
  * Tests CLI parameter parsing, help/version flags, and configuration overrides
  */
 
@@ -31,99 +31,51 @@ describe('CLI Manager', () => {
 
   describe('Size override', () => {
     it('should parse --size option', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--size',
-        '24'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--size', '24']);
       expect(args.overrides.size).toBe(24);
     });
 
     it('should parse -s option', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '-s',
-        '16'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '-s', '16']);
       expect(args.overrides.size).toBe(16);
     });
 
     it('should parse decimal font size', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--size',
-        '12.5'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--size', '12.5']);
       expect(args.overrides.size).toBe(12.5);
     });
   });
 
   describe('Bold override', () => {
     it('should parse --bold flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--bold'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--bold']);
       expect(args.overrides.bold).toBe(true);
     });
 
     it('should parse -b flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '-b'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '-b']);
       expect(args.overrides.bold).toBe(true);
     });
 
     it('should parse --no-bold flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--no-bold'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--no-bold']);
       expect(args.overrides.bold).toBe(false);
     });
   });
 
   describe('Italic override', () => {
     it('should parse --italic flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--italic'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--italic']);
       expect(args.overrides.italic).toBe(true);
     });
 
     it('should parse -i flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '-i'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '-i']);
       expect(args.overrides.italic).toBe(true);
     });
 
     it('should parse --no-italic flag', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--no-italic'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--no-italic']);
       expect(args.overrides.italic).toBe(false);
     });
   });
@@ -135,7 +87,7 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '--render-mode',
-        '1'
+        '1',
       ]);
       expect(args.overrides.renderMode).toBe(RenderMode.BIT_1);
     });
@@ -146,7 +98,7 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '--render-mode',
-        '2'
+        '2',
       ]);
       expect(args.overrides.renderMode).toBe(RenderMode.BIT_2);
     });
@@ -157,7 +109,7 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '--render-mode',
-        '4'
+        '4',
       ]);
       expect(args.overrides.renderMode).toBe(RenderMode.BIT_4);
     });
@@ -168,31 +120,19 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '--render-mode',
-        '8'
+        '8',
       ]);
       expect(args.overrides.renderMode).toBe(RenderMode.BIT_8);
     });
 
     it('should parse -m option', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '-m',
-        '4'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '-m', '4']);
       expect(args.overrides.renderMode).toBe(RenderMode.BIT_4);
     });
 
     it('should throw error for invalid render mode', () => {
       expect(() => {
-        cliManager.parse([
-          'node',
-          'font-converter',
-          'config.json',
-          '--render-mode',
-          '3'
-        ]);
+        cliManager.parse(['node', 'font-converter', 'config.json', '--render-mode', '3']);
       }).toThrow('Invalid render mode: 3');
     });
   });
@@ -204,7 +144,7 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '--output',
-        './custom-output'
+        './custom-output',
       ]);
       expect(args.overrides.outputPath).toBe('./custom-output');
     });
@@ -215,7 +155,7 @@ describe('CLI Manager', () => {
         'font-converter',
         'config.json',
         '-o',
-        '/absolute/path'
+        '/absolute/path',
       ]);
       expect(args.overrides.outputPath).toBe('/absolute/path');
     });
@@ -223,69 +163,33 @@ describe('CLI Manager', () => {
 
   describe('Rotation override', () => {
     it('should parse --rotation 0', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--rotation',
-        '0'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--rotation', '0']);
       expect(args.overrides.rotation).toBe(Rotation.ROTATE_0);
     });
 
     it('should parse --rotation 1', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--rotation',
-        '1'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--rotation', '1']);
       expect(args.overrides.rotation).toBe(Rotation.ROTATE_90);
     });
 
     it('should parse --rotation 2', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--rotation',
-        '2'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--rotation', '2']);
       expect(args.overrides.rotation).toBe(Rotation.ROTATE_270);
     });
 
     it('should parse --rotation 3', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '--rotation',
-        '3'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '--rotation', '3']);
       expect(args.overrides.rotation).toBe(Rotation.ROTATE_180);
     });
 
     it('should parse -r option', () => {
-      const args = cliManager.parse([
-        'node',
-        'font-converter',
-        'config.json',
-        '-r',
-        '1'
-      ]);
+      const args = cliManager.parse(['node', 'font-converter', 'config.json', '-r', '1']);
       expect(args.overrides.rotation).toBe(Rotation.ROTATE_90);
     });
 
     it('should throw error for invalid rotation', () => {
       expect(() => {
-        cliManager.parse([
-          'node',
-          'font-converter',
-          'config.json',
-          '--rotation',
-          '4'
-        ]);
+        cliManager.parse(['node', 'font-converter', 'config.json', '--rotation', '4']);
       }).toThrow('Invalid rotation: 4');
     });
   });
@@ -305,7 +209,7 @@ describe('CLI Manager', () => {
         '--output',
         './output',
         '--rotation',
-        '1'
+        '1',
       ]);
 
       expect(args.configPath).toBe('config.json');
@@ -331,7 +235,7 @@ describe('CLI Manager', () => {
         '-o',
         './out',
         '-r',
-        '0'
+        '0',
       ]);
 
       expect(args.overrides.size).toBe(18);
@@ -377,7 +281,7 @@ describe('CLI Manager', () => {
       indexMethod: 0,
       crop: false,
       characterSets: [],
-      outputFormat: 'bitmap' as const
+      outputFormat: 'bitmap' as const,
     };
 
     it('should override fontSize', () => {
@@ -398,21 +302,21 @@ describe('CLI Manager', () => {
 
     it('should override renderMode', () => {
       const result = CLIManager.applyOverrides(baseConfig, {
-        renderMode: RenderMode.BIT_8
+        renderMode: RenderMode.BIT_8,
       });
       expect(result.renderMode).toBe(RenderMode.BIT_8);
     });
 
     it('should override outputPath', () => {
       const result = CLIManager.applyOverrides(baseConfig, {
-        outputPath: './custom'
+        outputPath: './custom',
       });
       expect(result.outputPath).toBe('./custom');
     });
 
     it('should override rotation', () => {
       const result = CLIManager.applyOverrides(baseConfig, {
-        rotation: Rotation.ROTATE_90
+        rotation: Rotation.ROTATE_90,
       });
       expect(result.rotation).toBe(Rotation.ROTATE_90);
     });
@@ -424,7 +328,7 @@ describe('CLI Manager', () => {
         italic: true,
         renderMode: RenderMode.BIT_2,
         outputPath: './new-output',
-        rotation: Rotation.ROTATE_180
+        rotation: Rotation.ROTATE_180,
       });
 
       expect(result.fontSize).toBe(20);
@@ -453,4 +357,3 @@ describe('CLI Manager', () => {
     });
   });
 });
-

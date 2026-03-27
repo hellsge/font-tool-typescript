@@ -1,7 +1,7 @@
 /**
  * TypeScript Font Converter
  * Converts TrueType fonts to embedded system optimized binary formats
- * 
+ *
  * @packageDocumentation
  */
 

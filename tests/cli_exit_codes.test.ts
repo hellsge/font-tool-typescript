@@ -1,6 +1,6 @@
 /**
  * Property-based tests for CLI exit codes
- * 
+ *
  * Feature: typescript-font-converter, Property 21: 成功处理返回退出代码 0
  * Feature: typescript-font-converter, Property 22: 错误处理返回非零退出代码
  * Validates: Requirements 7.6, 7.7
@@ -58,9 +58,9 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
         {
           // Missing fontPath
           outputPath: './output',
-          fontSize: 16
-        }
-      ]
+          fontSize: 16,
+        },
+      ],
     };
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -90,11 +90,11 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
           characterSets: [
             {
               type: 'range',
-              value: '0x0020-0x007F'
-            }
-          ]
-        }
-      ]
+              value: '0x0020-0x007F',
+            },
+          ],
+        },
+      ],
     };
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -125,11 +125,11 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
           characterSets: [
             {
               type: 'range',
-              value: '0x0020-0x007F'
-            }
-          ]
-        }
-      ]
+              value: '0x0020-0x007F',
+            },
+          ],
+        },
+      ],
     };
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -162,11 +162,11 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
           characterSets: [
             {
               type: 'range',
-              value: '0x0020-0x007F'
-            }
-          ]
-        }
-      ]
+              value: '0x0020-0x007F',
+            },
+          ],
+        },
+      ],
     };
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -196,9 +196,9 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
           indexMethod: 0,
           crop: false,
           outputFormat: 'bitmap',
-          characterSets: [] // Empty - invalid
-        }
-      ]
+          characterSets: [], // Empty - invalid
+        },
+      ],
     };
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -214,25 +214,22 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
 describe('Exit code consistency', () => {
   it('should always return 0 for success and non-zero for errors', () => {
     fc.assert(
-      fc.property(
-        fc.boolean(),
-        (isSuccess) => {
-          // This is a conceptual property test
-          // In practice, we verify that:
-          // - Success always returns 0
-          // - Errors always return non-zero
-          
-          if (isSuccess) {
-            // Success case should return 0
-            expect(0).toBe(0);
-          } else {
-            // Error case should return non-zero
-            const errorCode = 1;
-            expect(errorCode).not.toBe(0);
-            expect(errorCode).toBeGreaterThan(0);
-          }
+      fc.property(fc.boolean(), (isSuccess) => {
+        // This is a conceptual property test
+        // In practice, we verify that:
+        // - Success always returns 0
+        // - Errors always return non-zero
+
+        if (isSuccess) {
+          // Success case should return 0
+          expect(0).toBe(0);
+        } else {
+          // Error case should return non-zero
+          const errorCode = 1;
+          expect(errorCode).not.toBe(0);
+          expect(errorCode).toBeGreaterThan(0);
         }
-      ),
+      }),
       { numRuns: 100 }
     );
   });
@@ -247,11 +244,11 @@ describe('Exit code consistency', () => {
       renderError: 6,
       outputError: 7,
       genericError: 1,
-      unexpectedError: 99
+      unexpectedError: 99,
     };
 
     // All exit codes should be non-zero
-    Object.values(exitCodes).forEach(code => {
+    Object.values(exitCodes).forEach((code) => {
       expect(code).not.toBe(0);
       expect(code).toBeGreaterThan(0);
     });
@@ -261,4 +258,3 @@ describe('Exit code consistency', () => {
     expect(uniqueCodes.size).toBeGreaterThan(1);
   });
 });
-

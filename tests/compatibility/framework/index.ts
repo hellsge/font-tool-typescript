@@ -1,6 +1,6 @@
 /**
  * Compatibility Test Framework
- * 
+ *
  * This module exports all components of the compatibility testing framework
  * for comparing TypeScript and C++ font converter outputs.
  */
@@ -26,7 +26,7 @@ export {
   saveReportJson,
   // Keep these for backward compatibility but report-generator has better versions
   formatReportSummary,
-  formatDetailedReport
+  formatDetailedReport,
 } from './test-runner';
 
 // Export all from report-generator (preferred report functions)

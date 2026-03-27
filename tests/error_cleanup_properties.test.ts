@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Error Cleanup
- * 
+ *
  * Tests Property 25: 错误时清理部分输出
  * Validates: Requirements 8.7
- * 
+ *
  * Feature: typescript-font-converter, Property 25: 错误时清理部分输出
  */
 
@@ -28,11 +28,9 @@ class TestFontGeneratorWithError extends FontGenerator {
     try {
       // Simulate loading
       if (this.shouldFailAt === 'load') {
-        throw new FontConverterError(
-          ErrorCode.FONT_FILE_NOT_FOUND,
-          'Simulated load error',
-          { filePath: this.config.fontPath }
-        );
+        throw new FontConverterError(ErrorCode.FONT_FILE_NOT_FOUND, 'Simulated load error', {
+          filePath: this.config.fontPath,
+        });
       }
 
       // Simulate creating output files (only if load succeeded)
@@ -53,11 +51,9 @@ class TestFontGeneratorWithError extends FontGenerator {
 
       // Simulate write error
       if (this.shouldFailAt === 'write') {
-        throw new FontConverterError(
-          ErrorCode.FILE_WRITE_ERROR,
-          'Simulated write error',
-          { filePath: binPath }
-        );
+        throw new FontConverterError(ErrorCode.FILE_WRITE_ERROR, 'Simulated write error', {
+          filePath: binPath,
+        });
       }
 
       // Success - clear tracking
@@ -99,8 +95,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
     let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
           // Use a unique directory for each test run to avoid race conditions
           const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
@@ -119,7 +114,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
             indexMethod: IndexMethod.ADDRESS,
             crop: false,
             characterSets: [],
-            outputFormat: 'bitmap'
+            outputFormat: 'bitmap',
           };
 
           const generator = new TestFontGeneratorWithError(config);
@@ -145,8 +140,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
     let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
           // Use a unique directory for each test run to avoid race conditions
           const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
@@ -165,7 +159,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
             indexMethod: IndexMethod.ADDRESS,
             crop: false,
             characterSets: [],
-            outputFormat: 'bitmap'
+            outputFormat: 'bitmap',
           };
 
           const generator = new TestFontGeneratorWithError(config);
@@ -187,8 +181,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
     let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
           // Use a unique directory for each test run to avoid race conditions
           const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
@@ -207,7 +200,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
             indexMethod: IndexMethod.ADDRESS,
             crop: false,
             characterSets: [],
-            outputFormat: 'bitmap'
+            outputFormat: 'bitmap',
           };
 
           const generator = new TestFontGeneratorWithError(config);
@@ -233,8 +226,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
     let testCounter = 0;
     fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         async (dirName) => {
           // Use a unique directory for each test run to avoid race conditions
           const uniqueDirName = `${dirName}_${testCounter++}_${Date.now()}`;
@@ -253,7 +245,7 @@ describe('Feature: typescript-font-converter, Property 25: 错误时清理部分
             indexMethod: IndexMethod.ADDRESS,
             crop: false,
             characterSets: [],
-            outputFormat: 'bitmap'
+            outputFormat: 'bitmap',
           };
 
           const generator = new TestFontGeneratorWithError(config);

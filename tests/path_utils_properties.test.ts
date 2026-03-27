@@ -1,6 +1,6 @@
 /**
  * Property-based tests for cross-platform path handling
- * 
+ *
  * Feature: typescript-font-converter, Property 4: 路径处理跨平台一致
  * Validates: Requirements 1.5, 10.2
  */
@@ -39,8 +39,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 5 }
         ),
         (segments) => {
@@ -71,8 +70,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 5 }
         ),
         (segments) => {
@@ -88,7 +86,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
           // Should not contain mixed separators
           const hasForwardSlash = joined.includes('/');
           const hasBackslash = joined.includes('\\');
-          
+
           // On Windows, should use backslash; on Unix, should use forward slash
           if (path.sep === '\\') {
             expect(hasBackslash || segments.length === 1).toBe(true);
@@ -104,10 +102,8 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
   it('should resolve relative paths consistently', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         (baseName, relativeName) => {
           const basePath = path.join(tempDir, baseName);
           const relativePath = relativeName;
@@ -132,8 +128,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
   it('should handle absolute paths correctly', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         (fileName) => {
           // Create an absolute path
           const absolutePath = path.join(tempDir, fileName);
@@ -153,8 +148,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 3 }
         ),
         (segments) => {
@@ -179,8 +173,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 2, maxLength: 5 }
         ),
         (segments) => {
@@ -204,16 +197,14 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 5 }
         ),
         fc.oneof(fc.constant('.txt'), fc.constant('.bin'), fc.constant('.cst')),
         (segments, ext) => {
           const fileName = segments[segments.length - 1] + ext;
-          const filePath = segments.length > 1
-            ? path.join(...segments.slice(0, -1), fileName)
-            : fileName;
+          const filePath =
+            segments.length > 1 ? path.join(...segments.slice(0, -1), fileName) : fileName;
 
           // Extract basename using PathUtils
           const basename = PathUtils.basename(filePath);
@@ -236,8 +227,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 5 }
         ),
         (segments) => {
@@ -267,8 +257,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
   it('should handle file existence checks consistently', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         (fileName) => {
           const filePath = path.join(tempDir, fileName);
 
@@ -296,8 +285,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
   it('should handle directory existence checks consistently', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 20 })
-          .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+        fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
         (dirName) => {
           const dirPath = path.join(tempDir, dirName);
 
@@ -325,8 +313,7 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 3 }
         ),
         (segments) => {
@@ -362,17 +349,19 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s))
+          fc
+            .string({ minLength: 1, maxLength: 20 })
+            .filter((s) => /^[a-zA-Z0-9_-]+$/.test(s))
             // Normalize to lowercase on Windows to avoid case-sensitivity issues
-            .map(s => process.platform === 'win32' ? s.toLowerCase() : s),
+            .map((s) => (process.platform === 'win32' ? s.toLowerCase() : s)),
           { minLength: 1, maxLength: 3 }
         ),
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s))
+          fc
+            .string({ minLength: 1, maxLength: 20 })
+            .filter((s) => /^[a-zA-Z0-9_-]+$/.test(s))
             // Normalize to lowercase on Windows to avoid case-sensitivity issues
-            .map(s => process.platform === 'win32' ? s.toLowerCase() : s),
+            .map((s) => (process.platform === 'win32' ? s.toLowerCase() : s)),
           { minLength: 1, maxLength: 3 }
         ),
         (fromSegments, toSegments) => {
@@ -390,15 +379,17 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
 
           // Resolving the relative path from fromPath should give toPath
           const resolved = path.resolve(fromPath, relativePath);
-          
+
           // On Windows, normalize case for comparison since filesystem is case-insensitive
-          const normalizedResolved = process.platform === 'win32' 
-            ? PathUtils.normalize(resolved).toLowerCase()
-            : PathUtils.normalize(resolved);
-          const normalizedToPath = process.platform === 'win32'
-            ? PathUtils.normalize(toPath).toLowerCase()
-            : PathUtils.normalize(toPath);
-          
+          const normalizedResolved =
+            process.platform === 'win32'
+              ? PathUtils.normalize(resolved).toLowerCase()
+              : PathUtils.normalize(resolved);
+          const normalizedToPath =
+            process.platform === 'win32'
+              ? PathUtils.normalize(toPath).toLowerCase()
+              : PathUtils.normalize(toPath);
+
           expect(normalizedResolved).toBe(normalizedToPath);
         }
       ),
@@ -410,16 +401,14 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
     fc.assert(
       fc.property(
         fc.array(
-          fc.string({ minLength: 1, maxLength: 20 })
-            .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)),
+          fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_-]+$/.test(s)),
           { minLength: 1, maxLength: 3 }
         ),
         fc.oneof(fc.constant('.txt'), fc.constant('.bin'), fc.constant('.cst')),
         (segments, ext) => {
           const fileName = segments[segments.length - 1] + ext;
-          const filePath = segments.length > 1
-            ? path.join(...segments.slice(0, -1), fileName)
-            : fileName;
+          const filePath =
+            segments.length > 1 ? path.join(...segments.slice(0, -1), fileName) : fileName;
 
           // Parse using PathUtils
           const parsed = PathUtils.parse(filePath);

@@ -15,7 +15,7 @@ import {
   ErrorCode,
   createCharsetFileNotFoundError,
   createCharsetParseError,
-  createInvalidUnicodeRangeError
+  createInvalidUnicodeRangeError,
 } from './errors';
 import { BINARY_FORMAT, VALIDATION_LIMITS } from './constants';
 import { PathUtils } from './path-utils';
@@ -82,12 +82,12 @@ export class CharsetProcessor {
    * Write Unicode values to a .cst file
    *
    * Writes Unicode values as uint16_t values (2 bytes each, little-endian).
-   * 
+   *
    * IMPORTANT: This function writes ALL provided Unicode values, regardless
    * of whether they can be successfully rendered. This matches C++ behavior
    * where the CST file contains all requested characters from the input
    * character set.
-   * 
+   *
    * C++ Reference: GenerateCstFile() in fontDictionary_o.cpp
    * - Format: Direct sequence of uint16_t values (no header)
    * - Contains all characters from ParseCodePage()
@@ -112,10 +112,7 @@ export class CharsetProcessor {
 
       for (let i = 0; i < unicodes.length; i++) {
         // Clamp to valid uint16_t range
-        const codePoint = Math.min(
-          Math.max(0, Math.floor(unicodes[i])),
-          BINARY_FORMAT.MAX_UNICODE
-        );
+        const codePoint = Math.min(Math.max(0, Math.floor(unicodes[i])), BINARY_FORMAT.MAX_UNICODE);
         buffer.writeUInt16LE(codePoint, i * 2);
       }
 
@@ -217,10 +214,7 @@ export class CharsetProcessor {
    *
    * Requirements: 4.5, 4.6
    */
-  static mergeCharacterSources(
-    sources: CharacterSetSource[],
-    basePath: string = ''
-  ): number[] {
+  static mergeCharacterSources(sources: CharacterSetSource[], basePath: string = ''): number[] {
     const unicodeSet = new Set<number>();
 
     for (const source of sources) {

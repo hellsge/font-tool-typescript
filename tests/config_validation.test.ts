@@ -1,7 +1,7 @@
 /**
  * Unit tests for configuration validation
  * Feature: typescript-font-converter
- * 
+ *
  * Tests validation of required fields, value ranges, and parameter conflicts.
  * Validates: Requirements 1.2, 1.3, 8.4
  */
@@ -9,12 +9,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigManager } from '../src/config';
-import {
-  FontConfig,
-  RenderMode,
-  Rotation,
-  IndexMethod
-} from '../src/types';
+import { FontConfig, RenderMode, Rotation, IndexMethod } from '../src/types';
 import { ErrorCode, FontConverterError } from '../src/errors';
 
 // Temporary directory for test files
@@ -39,7 +34,7 @@ function createValidConfig(): FontConfig {
     indexMethod: IndexMethod.ADDRESS,
     crop: false,
     characterSets: [{ type: 'file', value: TEST_CHARSET }],
-    outputFormat: 'bitmap'
+    outputFormat: 'bitmap',
   };
 }
 
@@ -70,7 +65,7 @@ describe('Configuration Validation', () => {
     it('should reject config with empty fontPath', () => {
       const config = createValidConfig();
       config.fontPath = '';
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -84,7 +79,7 @@ describe('Configuration Validation', () => {
     it('should reject config with empty outputPath', () => {
       const config = createValidConfig();
       config.outputPath = '';
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -98,7 +93,7 @@ describe('Configuration Validation', () => {
     it('should reject config with empty characterSets', () => {
       const config = createValidConfig();
       config.characterSets = [];
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -114,7 +109,7 @@ describe('Configuration Validation', () => {
     it('should reject fontSize below minimum', () => {
       const config = createValidConfig();
       config.fontSize = 0;
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -128,7 +123,7 @@ describe('Configuration Validation', () => {
     it('should reject fontSize above maximum', () => {
       const config = createValidConfig();
       config.fontSize = 300;
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -142,7 +137,7 @@ describe('Configuration Validation', () => {
     it('should reject gamma below minimum', () => {
       const config = createValidConfig();
       config.gamma = 0.01;
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -156,7 +151,7 @@ describe('Configuration Validation', () => {
     it('should reject gamma above maximum', () => {
       const config = createValidConfig();
       config.gamma = 10.0;
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -170,7 +165,7 @@ describe('Configuration Validation', () => {
     it('should reject invalid renderMode for bitmap', () => {
       const config = createValidConfig();
       config.renderMode = 3 as RenderMode; // Invalid value
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -184,7 +179,7 @@ describe('Configuration Validation', () => {
     it('should reject invalid rotation', () => {
       const config = createValidConfig();
       config.rotation = 5 as Rotation; // Invalid value
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -198,7 +193,7 @@ describe('Configuration Validation', () => {
     it('should reject invalid indexMethod', () => {
       const config = createValidConfig();
       config.indexMethod = 5 as IndexMethod; // Invalid value
-      
+
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {
         ConfigManager.validateConfig(config);
@@ -217,7 +212,7 @@ describe('Configuration Validation', () => {
       config.crop = true;
       config.indexMethod = IndexMethod.OFFSET;
       config.outputFormat = 'bitmap';
-      
+
       expect(() => ConfigManager.validateConfig(config)).not.toThrow();
     });
 
@@ -226,7 +221,7 @@ describe('Configuration Validation', () => {
       config.crop = true;
       config.indexMethod = IndexMethod.ADDRESS;
       config.outputFormat = 'bitmap';
-      
+
       expect(() => ConfigManager.validateConfig(config)).not.toThrow();
     });
 
@@ -235,7 +230,7 @@ describe('Configuration Validation', () => {
       config.crop = false;
       config.indexMethod = IndexMethod.OFFSET;
       config.outputFormat = 'bitmap';
-      
+
       expect(() => ConfigManager.validateConfig(config)).not.toThrow();
     });
   });
@@ -254,7 +249,7 @@ describe('Configuration Validation', () => {
 
     it('should accept all valid render modes', () => {
       const validModes = [RenderMode.BIT_1, RenderMode.BIT_2, RenderMode.BIT_4, RenderMode.BIT_8];
-      
+
       for (const mode of validModes) {
         const config = createValidConfig();
         config.renderMode = mode;
@@ -263,8 +258,13 @@ describe('Configuration Validation', () => {
     });
 
     it('should accept all valid rotations', () => {
-      const validRotations = [Rotation.ROTATE_0, Rotation.ROTATE_90, Rotation.ROTATE_180, Rotation.ROTATE_270];
-      
+      const validRotations = [
+        Rotation.ROTATE_0,
+        Rotation.ROTATE_90,
+        Rotation.ROTATE_180,
+        Rotation.ROTATE_270,
+      ];
+
       for (const rotation of validRotations) {
         const config = createValidConfig();
         config.rotation = rotation;

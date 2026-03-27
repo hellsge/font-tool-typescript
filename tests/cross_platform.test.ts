@@ -1,11 +1,11 @@
 /**
  * Cross-Platform Consistency Tests
- * 
+ *
  * Property 28: 跨平台 Binary 输出一致性
- * 
+ *
  * Validates that the TypeScript implementation generates identical binary output
  * across different platforms (Windows, macOS, Linux).
- * 
+ *
  * Task: 18.3
  * Validates: Requirements 10.4
  */
@@ -53,7 +53,10 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
   /**
    * Generate font and return hash of output file
    */
-  async function generateAndHash(config: any, outputDir: string): Promise<{ binHash: string; cstHash: string }> {
+  async function generateAndHash(
+    config: any,
+    outputDir: string
+  ): Promise<{ binHash: string; cstHash: string }> {
     const configPath = path.join(outputDir, 'config.json');
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
@@ -62,8 +65,8 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
 
     // Find generated files
     const files = fs.readdirSync(outputDir);
-    const binFile = files.find(f => f.endsWith('.bin'));
-    const cstFile = files.find(f => f.endsWith('.cst'));
+    const binFile = files.find((f) => f.endsWith('.bin'));
+    const cstFile = files.find((f) => f.endsWith('.cst'));
 
     expect(binFile).toBeDefined();
     expect(cstFile).toBeDefined();
@@ -93,11 +96,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       // Generate font multiple times
@@ -143,11 +146,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       // Generate font multiple times
@@ -196,11 +199,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       const hashForward = await generateAndHash(configForward, testOutputDir);
@@ -232,11 +235,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       const hashBackward = await generateAndHash(configBackward, testOutputDir);
@@ -265,11 +268,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       const hashAbsolute = await generateAndHash(configAbsolute, testOutputDir);
@@ -301,11 +304,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       const hashNormalized = await generateAndHash(configNormalized, testOutputDir);
@@ -335,18 +338,18 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       await generateAndHash(config, testOutputDir);
 
       // Read generated binary file
       const files = fs.readdirSync(testOutputDir);
-      const binFile = files.find(f => f.endsWith('.bin'));
+      const binFile = files.find((f) => f.endsWith('.bin'));
       expect(binFile).toBeDefined();
 
       const buffer = fs.readFileSync(path.join(testOutputDir, binFile!));
@@ -380,18 +383,18 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x005A' // A-Z
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x005A', // A-Z
+              },
+            ],
+          },
+        ],
       };
 
       await generateAndHash(config, testOutputDir);
 
       // Read generated .cst file
       const files = fs.readdirSync(testOutputDir);
-      const cstFile = files.find(f => f.endsWith('.cst'));
+      const cstFile = files.find((f) => f.endsWith('.cst'));
       expect(cstFile).toBeDefined();
 
       const buffer = fs.readFileSync(path.join(testOutputDir, cstFile!));
@@ -403,7 +406,7 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
       for (let i = 0; i < 26; i++) {
         const unicode = buffer.readUInt16LE(i * 2);
         expect(unicode).toBeGreaterThanOrEqual(0x0041);
-        expect(unicode).toBeLessThanOrEqual(0x005A);
+        expect(unicode).toBeLessThanOrEqual(0x005a);
       }
     }, 30000);
   });
@@ -428,11 +431,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
             characterSets: [
               {
                 type: 'range',
-                value: '0x0041-0x0046' // A-F
-              }
-            ]
-          }
-        ]
+                value: '0x0041-0x0046', // A-F
+              },
+            ],
+          },
+        ],
       };
 
       // Test with Unix line endings (\n)
@@ -444,7 +447,7 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
       expect(exitCodeUnix).toBe(0);
 
       const filesUnix = fs.readdirSync(testOutputDir);
-      const binFileUnix = filesUnix.find(f => f.endsWith('.bin') && !f.includes('config'));
+      const binFileUnix = filesUnix.find((f) => f.endsWith('.bin') && !f.includes('config'));
       expect(binFileUnix).toBeDefined();
       const hashUnix = calculateFileHash(path.join(testOutputDir, binFileUnix!));
 
@@ -464,7 +467,7 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
       expect(exitCodeWindows).toBe(0);
 
       const filesWindows = fs.readdirSync(testOutputDir);
-      const binFileWindows = filesWindows.find(f => f.endsWith('.bin') && !f.includes('config'));
+      const binFileWindows = filesWindows.find((f) => f.endsWith('.bin') && !f.includes('config'));
       expect(binFileWindows).toBeDefined();
       const hashWindows = calculateFileHash(path.join(testOutputDir, binFileWindows!));
 
