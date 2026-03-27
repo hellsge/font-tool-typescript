@@ -109,7 +109,7 @@ export class PathUtils {
    * @returns Path with forward slashes
    */
   public static toUnixStyle(filePath: string): string {
-    return filePath.split(path.sep).join('/');
+    return filePath.replace(/\\/g, '/');
   }
 
   /**

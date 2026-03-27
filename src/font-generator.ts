@@ -13,7 +13,7 @@ import * as path from 'path';
 import { FontConfig } from './types';
 import { FontParser, ParsedFont } from './font-parser';
 import { CharsetProcessor } from './charset-processor';
-import { FontConverterError, ErrorCode, createOutputDirectoryError } from './errors';
+import { createOutputDirectoryError } from './errors';
 import { FILE_NAMING } from './constants';
 import { PathUtils } from './path-utils';
 

@@ -11,18 +11,13 @@
 import * as fs from 'fs';
 import * as opentype from 'opentype.js';
 import { FontGenerator } from './font-generator';
-import { FontConfig, RenderMode, IndexMethod, Rotation } from './types';
-import { BitmapGlyphData, CropInfo } from './types/binary';
+import { FontConfig, IndexMethod, Rotation } from './types';
+import { CropInfo } from './types/binary';
 import { BitmapFontHeader, BitmapFontHeaderConfig } from './bitmap-font-header';
 import { BinaryWriter } from './binary-writer';
 import { ImageProcessor } from './image-processor';
-import { BINARY_FORMAT, FILE_NAMING, RENDER_MODE_BITS } from './constants';
-import {
-  FontConverterError,
-  ErrorCode,
-  createGlyphRenderFailedError,
-  createFileWriteError,
-} from './errors';
+import { BINARY_FORMAT, FILE_NAMING } from './constants';
+import { createFileWriteError } from './errors';
 import { PathUtils } from './path-utils';
 
 /**
@@ -937,7 +932,7 @@ export class BitmapFontGenerator extends FontGenerator {
   private writeIndexArray(
     writer: BinaryWriter,
     indexArray: IndexEntry[],
-    header: BitmapFontHeader
+    _header: BitmapFontHeader
   ): void {
     if (this.config.crop) {
       if (this.config.indexMethod === IndexMethod.OFFSET) {
@@ -979,7 +974,7 @@ export class BitmapFontGenerator extends FontGenerator {
     writer: BinaryWriter,
     indexArray: IndexEntry[],
     indexStartOffset: number,
-    glyphDataStartOffset: number
+    _glyphDataStartOffset: number
   ): Promise<void> {
     // C++ only writes glyph data for successfully rendered characters
     // Failed characters are skipped (they have 0xFFFF in index array)

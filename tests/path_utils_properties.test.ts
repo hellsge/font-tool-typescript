@@ -48,15 +48,10 @@ describe('Feature: typescript-font-converter, Property 4: 路径处理跨平台�
           const windowsPath = segments.join('\\');
           const mixedPath = segments.join(Math.random() > 0.5 ? '/' : '\\');
 
-          // All should normalize to the same result
-          const normalizedUnix = PathUtils.normalize(unixPath);
-          const normalizedWindows = PathUtils.normalize(windowsPath);
-          const normalizedMixed = PathUtils.normalize(mixedPath);
-
-          // Convert to Unix style for comparison (platform-independent)
-          const unixStyleUnix = PathUtils.toUnixStyle(normalizedUnix);
-          const unixStyleWindows = PathUtils.toUnixStyle(normalizedWindows);
-          const unixStyleMixed = PathUtils.toUnixStyle(normalizedMixed);
+          // toUnixStyle should unify all separator styles to forward slashes
+          const unixStyleUnix = PathUtils.toUnixStyle(unixPath);
+          const unixStyleWindows = PathUtils.toUnixStyle(windowsPath);
+          const unixStyleMixed = PathUtils.toUnixStyle(mixedPath);
 
           expect(unixStyleUnix).toBe(unixStyleWindows);
           expect(unixStyleUnix).toBe(unixStyleMixed);

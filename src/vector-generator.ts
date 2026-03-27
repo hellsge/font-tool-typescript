@@ -16,7 +16,7 @@ import { VectorFontHeader, VectorFontHeaderConfig } from './vector-font-header';
 import { BinaryWriter } from './binary-writer';
 import { GlyphOutline, ContourPoint } from './font-parser';
 import { BINARY_FORMAT, FILE_NAMING } from './constants';
-import { createGlyphRenderFailedError, createFileWriteError } from './errors';
+import { createFileWriteError } from './errors';
 import { PathUtils } from './path-utils';
 
 /**
@@ -560,7 +560,7 @@ export class VectorFontGenerator extends FontGenerator {
     this.writeIndexArray(writer, indexArray);
 
     // Write glyph data and update index array with file offsets
-    const glyphDataStartOffset = writer.getOffset();
+    const _glyphDataStartOffset = writer.getOffset();
     await this.writeGlyphData(writer, indexArray, indexStartOffset);
 
     // Write to file

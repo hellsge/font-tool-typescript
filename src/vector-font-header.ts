@@ -254,16 +254,16 @@ export class VectorFontHeader {
     let offset = 0;
 
     // Read length
-    const length = data.readUInt8(offset++);
+    const _length = data.readUInt8(offset++);
 
     // Read fileFlag
-    const fileFlag = data.readUInt8(offset++) as FileFlag;
+    const _fileFlag = data.readUInt8(offset++) as FileFlag;
 
     // Read version
-    const versionMajor = data.readUInt8(offset++);
-    const versionMinor = data.readUInt8(offset++);
-    const versionRevision = data.readUInt8(offset++);
-    const versionBuildnum = data.readUInt8(offset++);
+    const _versionMajor = data.readUInt8(offset++);
+    const _versionMinor = data.readUInt8(offset++);
+    const _versionRevision = data.readUInt8(offset++);
+    const _versionBuildnum = data.readUInt8(offset++);
 
     // Read fontSize
     const fontSize = data.readUInt8(offset++);
@@ -275,7 +275,7 @@ export class VectorFontHeader {
     const bitfield = data.readUInt8(offset++);
     const bold = (bitfield & 0x01) !== 0;
     const italic = (bitfield & 0x02) !== 0;
-    const rvd = (bitfield & 0x04) !== 0;
+    const _rvd = (bitfield & 0x04) !== 0;
     const indexMethod = (bitfield & 0x08) !== 0 ? IndexMethod.OFFSET : IndexMethod.ADDRESS;
 
     // Read indexAreaSize (4 bytes, little-endian)

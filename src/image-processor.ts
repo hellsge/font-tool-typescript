@@ -590,7 +590,7 @@ export class ImageProcessor {
    *
    * Requirements: 2.1, 2.8
    */
-  static packTo8Bit(pixels: Uint8Array, width: number, height: number): Uint8Array {
+  static packTo8Bit(pixels: Uint8Array, _width: number, _height: number): Uint8Array {
     // Simply return a copy of the pixel data
     return new Uint8Array(pixels);
   }

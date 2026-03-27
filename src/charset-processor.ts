@@ -17,7 +17,7 @@ import {
   createCharsetParseError,
   createInvalidUnicodeRangeError,
 } from './errors';
-import { BINARY_FORMAT, VALIDATION_LIMITS } from './constants';
+import { BINARY_FORMAT } from './constants';
 import { PathUtils } from './path-utils';
 import { CodePageParser } from './codepage-parser';
 
@@ -221,13 +221,14 @@ export class CharsetProcessor {
       let chars: number[] = [];
 
       switch (source.type) {
-        case 'file':
+        case 'file': {
           // Resolve file path relative to base path
           const filePath = PathUtils.isAbsolute(source.value)
             ? source.value
             : PathUtils.resolveRelative(basePath, source.value);
           chars = CharsetProcessor.parseCSTFile(filePath);
           break;
+        }
 
         case 'range':
           chars = CharsetProcessor.parseUnicodeRange(source.value);
@@ -237,7 +238,7 @@ export class CharsetProcessor {
           chars = CharsetProcessor.extractStringCharacters(source.value);
           break;
 
-        case 'codepage':
+        case 'codepage': {
           // Resolve CodePage file path
           const cpPath = CodePageParser.resolveCodePagePath(source.value, basePath);
           if (!cpPath) {
@@ -249,6 +250,7 @@ export class CharsetProcessor {
           }
           chars = CodePageParser.parseNlsFile(cpPath);
           break;
+        }
 
         default:
           throw new FontConverterError(

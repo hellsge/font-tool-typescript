@@ -249,13 +249,13 @@ export class BitmapFontHeader {
     let offset = 0;
 
     // Read length
-    const length = data.readUInt8(offset++);
+    const _length = data.readUInt8(offset++);
 
     // Read BitmapFontHeadConfig
-    const fileFlag = data.readUInt8(offset++) as FileFlag;
-    const versionMajor = data.readUInt8(offset++);
-    const versionMinor = data.readUInt8(offset++);
-    const versionRevision = data.readUInt8(offset++);
+    const _fileFlag = data.readUInt8(offset++) as FileFlag;
+    const _versionMajor = data.readUInt8(offset++);
+    const _versionMinor = data.readUInt8(offset++);
+    const _versionRevision = data.readUInt8(offset++);
     const size = data.readUInt8(offset++);
     const fontSize = data.readUInt8(offset++);
     const renderMode = data.readUInt8(offset++) as RenderMode;
@@ -264,7 +264,7 @@ export class BitmapFontHeader {
     const bitfield = data.readUInt8(offset++);
     const bold = (bitfield & 0x01) !== 0;
     const italic = (bitfield & 0x02) !== 0;
-    const rvd = (bitfield & 0x04) !== 0;
+    const _rvd = (bitfield & 0x04) !== 0;
     const indexMethod = (bitfield & 0x08) !== 0 ? IndexMethod.OFFSET : IndexMethod.ADDRESS;
     const crop = (bitfield & 0x10) !== 0;
 

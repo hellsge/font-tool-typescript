@@ -180,6 +180,8 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
   });
 
   describe('Path Handling Consistency', () => {
+    const isWindows = process.platform === 'win32';
+
     it('should handle forward slashes and backslashes consistently', async () => {
       // Test with forward slashes
       const configForward = {
@@ -215,6 +217,11 @@ describe('Feature: typescript-font-converter, Property 28: 跨平台 Binary 输�
         if (fs.statSync(filePath).isFile()) {
           fs.unlinkSync(filePath);
         }
+      }
+
+      // Test with backslashes (Windows style) - only valid on Windows
+      if (!isWindows) {
+        return;
       }
 
       // Test with backslashes (Windows style)

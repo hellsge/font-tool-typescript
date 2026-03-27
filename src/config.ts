@@ -12,11 +12,9 @@ import { RenderMode, Rotation, IndexMethod } from './types';
 import { DEFAULTS, VALIDATION_LIMITS } from './constants';
 import {
   FontConverterError,
-  ErrorCode,
   createConfigFileNotFoundError,
   createConfigParseError,
   createConfigValidationError,
-  createIndexMethodConflictError,
   createFontFileNotFoundError,
   createCharsetFileNotFoundError,
   createCodePageNotFoundError,

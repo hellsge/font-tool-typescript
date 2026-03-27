@@ -267,7 +267,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       // TS v2.0.0 uses its own version, no longer mirrors C++ 1.0.2
       expect(header.versionMajor).toBe(2);
       expect(header.versionMinor).toBe(0);
-      expect(header.versionRevision).toBe(0);
+      expect(header.versionRevision).toBe(2);
 
       // Verify file flag is 1 for bitmap
       expect(header.fileFlag).toBe(1);
@@ -372,7 +372,7 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       // TS v2.0.0 uses its own version for vector fonts too
       expect(header.versionMajor).toBe(2);
       expect(header.versionMinor).toBe(0);
-      expect(header.versionRevision).toBe(0);
+      expect(header.versionRevision).toBe(2);
 
       // Verify file flag is 2 for vector
       expect(header.fileFlag).toBe(2);
