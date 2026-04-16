@@ -1,5 +1,27 @@
 # 更新日志
 
+## [3.1.0] - 2026-04-16
+
+矢量字体功能增强 — V3 header 补充 `unitsPerEm`，空格字形支持。
+
+### 新增
+- V3 vector header extension：追加 `unitsPerEm`（uint16, 2 字节）于 fontName 之后，消费端可获取字体设计单位用于排版计算
+- 空格字形 (U+0020) 支持：无轮廓但有 advance 的字形（如空格）现在生成 advance-only glyph data entry（bbox 全零 + windingCount=0 + 有效 advance），消费端可正确获取空格宽度
+- `fontSize` 前置校验：矢量生成器在 `generate()` 入口校验 `fontSize > 0`，不合法时抛出 `CONFIG_VALIDATION_ERROR`
+- `unitsPerEm` 校验：`createHeader()` 校验 `unitsPerEm > 0`，无效时抛出 `FONT_PARSE_ERROR`
+- `VectorFontHeader.fromBytes()` 兼容读取：version[0] >= 3 时读取 `unitsPerEm`，低版本默认 0
+
+### 变更
+- `VectorFontHeader.length` 计算包含 V3 extension（+2 字节）
+- `extractGlyph()` 不再跳过无轮廓字形，改为判断 `outline.contours.length === 0` 时生成 advance-only entry
+
+### 测试
+- `header_properties.test.ts`：property-based test 适配 `unitsPerEm` 字段，验证 round-trip 和 header length 计算
+- `vector_generator_basic.test.ts`：新增 validation 测试组（fontSize 校验）和 space glyph 测试组（ADDRESS/OFFSET 模式、纯空格字符集）
+- 新增测试字体 `Font/NotoSans-Bold.ttf`
+
+---
+
 ## [3.0.0] - 2026-03-24
 
 点阵字体字形标准化重构 — V2 bearing-based tight bbox 格式。

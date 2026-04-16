@@ -42,6 +42,9 @@ export interface VectorFontHeaderConfig {
   /** Line gap */
   lineGap: number;
 
+  /** Units per em — font design units per em square (V3 extension) */
+  unitsPerEm: number;
+
   /** Number of characters in the font */
   characterCount: number;
 }
@@ -129,8 +132,14 @@ export class VectorFontHeader {
   /** Font name (without extension) */
   public readonly fontName: string;
 
+  /** Units per em — font design units per em square (V3 extension, uint16) */
+  public readonly unitsPerEm: number;
+
   /** Size of fixed header fields before fontName */
   private static readonly FIXED_HEADER_SIZE = 20; // 1+1+1+1+1+1+1+1+1+4+1+2+2+2
+
+  /** Size of V3 extension fields after fontName */
+  private static readonly V3_EXTENSION_SIZE = 2; // units_per_em (uint16)
 
   /**
    * Creates a new VectorFontHeader
@@ -148,12 +157,14 @@ export class VectorFontHeader {
     this.ascent = config.ascent;
     this.descent = config.descent;
     this.lineGap = config.lineGap;
+    this.unitsPerEm = config.unitsPerEm;
 
     // Calculate index area size based on indexMethod
     this.indexAreaSize = this.calculateIndexAreaSize(config.indexMethod, config.characterCount);
 
-    // Calculate total header length
-    this.length = VectorFontHeader.FIXED_HEADER_SIZE + this.fontNameLength;
+    // Calculate total header length: fixed fields + fontName + V3 extension (units_per_em)
+    this.length =
+      VectorFontHeader.FIXED_HEADER_SIZE + this.fontNameLength + VectorFontHeader.V3_EXTENSION_SIZE;
   }
 
   /**
@@ -232,6 +243,9 @@ export class VectorFontHeader {
     // Write fontName (null-terminated)
     writer.writeNullTerminatedString(this.fontName);
 
+    // Write V3 extension: units_per_em (2 bytes, uint16, little-endian)
+    writer.writeUint16LE(this.unitsPerEm);
+
     return writer.getBuffer();
   }
 
@@ -299,6 +313,14 @@ export class VectorFontHeader {
 
     // Read fontName (excluding null terminator)
     const fontName = data.toString('utf8', offset, offset + fontNameLength - 1);
+    offset += fontNameLength;
+
+    // Read V3 extension: units_per_em (only for version[0] >= 3)
+    let unitsPerEm = 0;
+    if (_versionMajor >= 3) {
+      unitsPerEm = data.readUInt16LE(offset);
+      offset += 2;
+    }
 
     // Calculate character count from indexAreaSize
     let characterCount = 0;
@@ -318,6 +340,7 @@ export class VectorFontHeader {
       ascent,
       descent,
       lineGap,
+      unitsPerEm,
       characterCount,
     });
   }

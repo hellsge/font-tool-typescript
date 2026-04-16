@@ -16,7 +16,7 @@ import { VectorFontHeader, VectorFontHeaderConfig } from './vector-font-header';
 import { BinaryWriter } from './binary-writer';
 import { GlyphOutline, ContourPoint } from './font-parser';
 import { BINARY_FORMAT, FILE_NAMING } from './constants';
-import { createFileWriteError } from './errors';
+import { FontConverterError, ErrorCode, createFileWriteError } from './errors';
 import { PathUtils } from './path-utils';
 
 /**
@@ -71,6 +71,15 @@ export class VectorFontGenerator extends FontGenerator {
    */
   async generate(): Promise<void> {
     try {
+      // 校验 fontSize：必须为正数（Requirements: 2.3）
+      if (this.config.fontSize <= 0) {
+        throw new FontConverterError(
+          ErrorCode.CONFIG_VALIDATION_ERROR,
+          `Invalid fontSize: ${this.config.fontSize}. fontSize must be greater than 0.`,
+          { fieldName: 'fontSize', expected: '> 0', actual: String(this.config.fontSize) }
+        );
+      }
+
       // Load font and character set
       await this.loadFont();
       await this.loadCharacterSet();
@@ -152,8 +161,14 @@ export class VectorFontGenerator extends FontGenerator {
   /**
    * Extract a single glyph outline
    *
+   * For glyphs with contours (most visible characters), extracts full outline data.
+   * For glyphs without contours but with a valid advance (e.g., space U+0020),
+   * creates an advance-only FontGlyphData entry with empty bounding box and zero windings.
+   *
    * @param unicode - Unicode code point
    * @returns Processed glyph or null if extraction failed
+   *
+   * Requirements: 15.3
    */
   private async extractGlyph(unicode: number): Promise<ProcessedVectorGlyph | null> {
     if (!this.parsedFont) {
@@ -165,8 +180,30 @@ export class VectorFontGenerator extends FontGenerator {
     // The fontSize is only stored in the header for reference
     const outline = this.fontParser.getGlyphOutline(unicode);
 
-    if (!outline || outline.contours.length === 0) {
+    if (!outline) {
       return null;
+    }
+
+    // Handle glyphs with no contours (e.g., space U+0020)
+    // These glyphs have a valid advance width but no visible outlines.
+    // We still need to include them in the output so the renderer can use
+    // the font-defined advance value for spacing (Requirements: 15.3).
+    if (outline.contours.length === 0) {
+      const data: VectorGlyphData = {
+        sx0: 0,
+        sy0: 0,
+        sx1: 0,
+        sy1: 0,
+        advance: outline.advanceWidth,
+        windingCount: 0,
+        windingLengths: [],
+        windings: [],
+      };
+
+      return {
+        unicode,
+        data,
+      };
     }
 
     // Convert outline to vector glyph data
@@ -456,10 +493,30 @@ export class VectorFontGenerator extends FontGenerator {
 
   /**
    * Create the vector font header
+   *
+   * 从 parsedFont.metrics 提取 unitsPerEm 并传入 VectorFontHeaderConfig。
+   * 校验 unitsPerEm > 0，否则报错中止。
+   *
+   * Requirements: 2.1, 2.3, 14.1, 14.2
    */
   private createHeader(): VectorFontHeader {
     if (!this.parsedFont) {
       throw new Error('Font not loaded');
+    }
+
+    // 校验 unitsPerEm：必须为正数（Requirements: 14.1, 14.2）
+    const unitsPerEm = this.parsedFont.metrics.unitsPerEm;
+    if (!unitsPerEm || unitsPerEm <= 0) {
+      throw new FontConverterError(
+        ErrorCode.FONT_PARSE_ERROR,
+        `Invalid unitsPerEm: ${unitsPerEm}. Font must have unitsPerEm > 0.`,
+        {
+          fieldName: 'unitsPerEm',
+          expected: '> 0',
+          actual: String(unitsPerEm),
+          details: 'unitsPerEm is required for V3 standard typography format',
+        }
+      );
     }
 
     const config: VectorFontHeaderConfig = {
@@ -472,6 +529,7 @@ export class VectorFontGenerator extends FontGenerator {
       ascent: this.parsedFont.metrics.ascent,
       descent: this.parsedFont.metrics.descent,
       lineGap: this.parsedFont.metrics.lineGap,
+      unitsPerEm: unitsPerEm,
       characterCount: this.glyphs.size,
     };
 

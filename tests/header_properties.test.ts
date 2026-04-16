@@ -61,6 +61,7 @@ const vectorFontHeaderConfigArbitrary: fc.Arbitrary<VectorFontHeaderConfig> = fc
   ascent: fc.integer({ min: -32768, max: 32767 }),
   descent: fc.integer({ min: -32768, max: 32767 }),
   lineGap: fc.integer({ min: -32768, max: 32767 }),
+  unitsPerEm: fc.integer({ min: 0, max: 65535 }),
   characterCount: fc.integer({ min: 1, max: 65536 }),
 });
 
@@ -225,6 +226,7 @@ describe('VectorFontHeader serialization', () => {
         expect(parsed.ascent).toBe(original.ascent);
         expect(parsed.descent).toBe(original.descent);
         expect(parsed.lineGap).toBe(original.lineGap);
+        expect(parsed.unitsPerEm).toBe(original.unitsPerEm);
       }),
       { numRuns: 100 }
     );
@@ -241,10 +243,10 @@ describe('VectorFontHeader serialization', () => {
         expect(bytes.length).toBe(header.length);
         expect(lengthByte).toBe(header.length);
 
-        // Expected length: 20 (fixed header) + fontNameLength
+        // Expected length: 20 (fixed header) + fontNameLength + 2 (V3 units_per_em)
         // fontNameLength = fontName.length + 1 (null terminator)
         const fontNameLength = config.fontName.length + 1;
-        const expectedLength = 20 + fontNameLength;
+        const expectedLength = 20 + fontNameLength + 2;
         expect(header.length).toBe(expectedLength);
       }),
       { numRuns: 100 }
