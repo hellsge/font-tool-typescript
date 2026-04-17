@@ -147,10 +147,10 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     const parsed = BitmapFontHeader.fromBytes(bytes);
 
     expect(parsed.isV2).toBe(true);
-    expect(parsed.versionMajor).toBe(3);
-    expect(parsed.versionMinor).toBe(0);
-    expect(parsed.versionRevision).toBe(0);
-    expect(parsed.versionBuildnum).toBe(0);
+    expect(parsed.versionMajor).toBe(VERSION.MAJOR);
+    expect(parsed.versionMinor).toBe(VERSION.MINOR);
+    expect(parsed.versionRevision).toBe(VERSION.REVISION);
+    expect(parsed.versionBuildnum).toBe(VERSION.BUILD);
     expect(parsed.crop).toBe(true);
     expect(parsed.ascender).toBe(1900);
     expect(parsed.descender).toBe(-500);
@@ -167,13 +167,13 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     expect(bytes[0]).toBe(header.length);
   });
 
-  it('writes version {3,0,0,0} at offsets 2-5', () => {
+  it('writes version from package.json at offsets 2-5', () => {
     const header = new BitmapFontHeader(makeV2Config());
     const bytes = header.toBytes();
-    expect(bytes[2]).toBe(3);
-    expect(bytes[3]).toBe(0);
-    expect(bytes[4]).toBe(0);
-    expect(bytes[5]).toBe(0);
+    expect(bytes[2]).toBe(VERSION.MAJOR);
+    expect(bytes[3]).toBe(VERSION.MINOR);
+    expect(bytes[4]).toBe(VERSION.REVISION);
+    expect(bytes[5]).toBe(VERSION.BUILD);
   });
 
   it('writes crop bit = 1 in bitfield', () => {

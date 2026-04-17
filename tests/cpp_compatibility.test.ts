@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { main } from '../src/main';
 import * as fc from 'fast-check';
+import { VERSION } from '../src/constants';
 
 describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++ 兼容', () => {
   const testOutputDir = path.join(__dirname, '../test-output/cpp-compat');
@@ -283,10 +284,10 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
       // Parse header
       const header = parseBitmapHeader(path.join(testOutputDir, binFile!));
 
-      // Verify version matches package.json (v3.0.0)
-      expect(header.versionMajor).toBe(3);
-      expect(header.versionMinor).toBe(0);
-      expect(header.versionRevision).toBe(0);
+      // Verify version matches package.json
+      expect(header.versionMajor).toBe(VERSION.MAJOR);
+      expect(header.versionMinor).toBe(VERSION.MINOR);
+      expect(header.versionRevision).toBe(VERSION.REVISION);
 
       // Verify file flag is 1 for bitmap
       expect(header.fileFlag).toBe(1);
@@ -388,10 +389,10 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
 
       const header = parseVectorHeader(path.join(testOutputDir, binFile!));
 
-      // Verify version matches package.json (v3.0.0)
-      expect(header.versionMajor).toBe(3);
-      expect(header.versionMinor).toBe(0);
-      expect(header.versionRevision).toBe(0);
+      // Verify version matches package.json
+      expect(header.versionMajor).toBe(VERSION.MAJOR);
+      expect(header.versionMinor).toBe(VERSION.MINOR);
+      expect(header.versionRevision).toBe(VERSION.REVISION);
 
       // Verify file flag is 2 for vector
       expect(header.fileFlag).toBe(2);
