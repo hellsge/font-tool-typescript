@@ -30,7 +30,7 @@ function getPackageVersion(): {
     try {
       if (!fs.existsSync(packagePath)) { continue; }
       const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
-      const versionStr = packageJson.version || '3.1.0';
+      const versionStr = packageJson.version || '3.1.1';
       const parts = versionStr.split('.').map((p: string) => parseInt(p, 10) || 0);
       return {
         major: parts[0] || 0,
@@ -44,7 +44,7 @@ function getPackageVersion(): {
     }
   }
   // fallback 与 package.json 中的版本保持一致
-  return { major: 3, minor: 1, revision: 0, build: 0, string: '3.1.0' };
+  return { major: 3, minor: 1, revision: 1, build: 0, string: '3.1.1' };
 }
 
 const PKG_VERSION = getPackageVersion();

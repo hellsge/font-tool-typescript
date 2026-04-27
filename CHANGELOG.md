@@ -1,5 +1,22 @@
 # 更新日志
 
+## [3.1.1] - 2026-04-27
+
+点阵字体低 bit 模式字形纵向对齐修复。
+
+### 修复
+- 修复 1/2/4-bit 模式下部分字形纵向偏移 1px 的问题（ghost row）
+  - tight bbox 裁剪改用与 renderMode 打包一致的可见性阈值
+  - bearingX/bearingY 改为从实际渲染像素位置反算，确保与打包后可见内容一致
+- 修复 `examples/honeygui_test.json` 中相对路径错误
+
+### 新增
+- `ImageProcessor.getVisibilityThreshold(renderMode)` 方法
+- `scripts/pack-deploy.bat` 打包便捷脚本
+- `scripts/gen-honeygui-test.bat` honeygui 测试字库生成脚本
+
+---
+
 ## [3.1.0] - 2026-04-16
 
 矢量字体功能增强 — V3 header 补充 `unitsPerEm`，空格字形支持。

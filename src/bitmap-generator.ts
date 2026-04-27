@@ -217,14 +217,20 @@ export class BitmapFontGenerator extends FontGenerator {
       height = result.height;
     }
 
-    // Compute tight bounding box from the rendered bitmap
+    // Compute tight bounding box from the rendered bitmap.
+    // Use the render mode's effective visibility threshold so that the tight bbox
+    // only includes rows/columns that will actually have visible pixels after packing.
+    // This prevents "ghost rows" where anti-aliased pixels below the packing threshold
+    // cause the tight bbox to be larger than the visible content.
+    const visibilityThreshold = ImageProcessor.getVisibilityThreshold(this.config.renderMode);
+
     let minX = width,
       maxX = -1,
       minY = height,
       maxY = -1;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (pixels[y * width + x] > 0) {
+        if (pixels[y * width + x] >= visibilityThreshold) {
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
           if (y < minY) minY = y;
@@ -258,9 +264,21 @@ export class BitmapFontGenerator extends FontGenerator {
         ? ImageProcessor.packPixels(tightPixels, tightWidth, tightHeight, this.config.renderMode)
         : new Uint8Array(0);
 
+    // Recompute bearingX/bearingY from actual rendered pixel positions.
+    // The full render canvas starts at (screenX1, screenY1) relative to the baseline origin.
+    // screenY1 = floor(-bbox.y2 * scale), so baseline is at y = -screenY1 in the canvas.
+    // The tight bbox top is at canvas row minY, so its position relative to baseline is:
+    //   bearingY = -(screenY1 + minY)  (distance from baseline to top of visible pixels)
+    // Similarly for X:
+    //   bearingX = x1 + minX  where x1 = floor(bbox.x1 * scale)
+    const screenX1 = Math.floor(bbox.x1 * scale);
+    const screenY1 = Math.floor(-bbox.y2 * scale);
+    const actualBearingX = tightWidth > 0 ? screenX1 + minX : rawBearingX;
+    const actualBearingY = tightHeight > 0 ? -(screenY1 + minY) : rawBearingY;
+
     const header: GlyphHeaderV2 = {
-      bearingX: Math.max(-128, Math.min(127, rawBearingX)),
-      bearingY: Math.max(-128, Math.min(127, rawBearingY)),
+      bearingX: Math.max(-128, Math.min(127, actualBearingX)),
+      bearingY: Math.max(-128, Math.min(127, actualBearingY)),
       width: Math.max(0, Math.min(255, tightWidth)),
       height: Math.max(0, Math.min(255, tightHeight)),
       advance: Math.max(0, Math.min(255, rawAdvance)),

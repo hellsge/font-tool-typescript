@@ -596,6 +596,37 @@ export class ImageProcessor {
   }
 
   /**
+   * Get the minimum pixel value that will be visible after packing for a given render mode.
+   *
+   * This threshold determines which pixels are "visible" in the final output:
+   * - 1-bit: pixels >= 128 become 1, others become 0
+   * - 2-bit: pixels >= 64 become non-zero (quantized by >> 6)
+   * - 4-bit: pixels >= 16 become non-zero (quantized by >> 4)
+   * - 8-bit: pixels >= 1 are visible (no quantization loss)
+   *
+   * Used by the bitmap generator to compute tight bounding boxes that match
+   * the actual visible content after packing, preventing "ghost rows" where
+   * anti-aliased pixels below the threshold inflate the bbox.
+   *
+   * @param renderMode - Render mode (1, 2, 4, or 8 bits per pixel)
+   * @returns Minimum pixel value that will be visible after packing
+   */
+  static getVisibilityThreshold(renderMode: RenderMode): number {
+    switch (renderMode) {
+      case RenderMode.BIT_1:
+        return 128; // >= 128 becomes 1
+      case RenderMode.BIT_2:
+        return 64; // >> 6 gives non-zero for >= 64
+      case RenderMode.BIT_4:
+        return 16; // >> 4 gives non-zero for >= 16
+      case RenderMode.BIT_8:
+        return 1; // any non-zero pixel is visible
+      default:
+        return 1;
+    }
+  }
+
+  /**
    * Pack image according to render mode
    *
    * @param pixels - Input pixel data (grayscale 0-255)
