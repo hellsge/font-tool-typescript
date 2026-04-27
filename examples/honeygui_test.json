@@ -1,0 +1,310 @@
+{
+  "fonts": [
+    {
+      "_comment": "font32b1 - HarmonyOS bitmap bits1",
+      "fontPath": "./Font/HarmonyOS_Sans_SC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 1,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "file",
+          "value": "../charset/GB2312.cst"
+        }
+      ]
+    },
+    {
+      "_comment": "font32b2 / fontharmonysc - HarmonyOS bitmap bits2",
+      "fontPath": "./Font/HarmonyOS_Sans_SC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 0,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0000-0xFFFF"
+        }
+      ]
+    },
+    {
+      "_comment": "font32b4 - HarmonyOS bitmap bits4",
+      "fontPath": "./Font/HarmonyOS_Sans_SC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "string",
+          "value": "滕王高阁临江渚，佩玉鸣鸾罢歌舞。画栋朝飞南浦云，珠帘暮卷西山雨。闲云潭影日悠悠，物换星移几度秋。阁中帝子今何在？槛外长江空自流。"
+        }
+      ]
+    },
+    {
+      "_comment": "font32b8 - HarmonyOS bitmap bits8",
+      "fontPath": "./Font/HarmonyOS_Sans_SC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 8,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "string",
+          "value": "滕王高阁临江渚，佩玉鸣鸾罢歌舞。画栋朝飞南浦云，珠帘暮卷西山雨。闲云潭影日悠悠，物换星移几度秋。阁中帝子今何在？槛外长江空自流。"
+        }
+      ]
+    },
+    {
+      "_comment": "font32vb4 - HarmonyOS vector",
+      "fontPath": "./Font/HarmonyOS_Sans_SC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "vector",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "file",
+          "value": "../charset/GB2312.cst"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnoto - NotoSans (no_overlap) bitmap bits4",
+      "fontPath": "./Font/no_overlap/NotoSans_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0000-0xFFFF"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotoarabic - NotoSansArabic bitmap bits2",
+      "fontPath": "./Font/NotoSansArabic_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0000-0xFFFF"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotojp - NotoSansJP bitmap bits2",
+      "fontPath": "./Font/no_overlap/NotoSansJP_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "codepage",
+          "value": "CP932"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotokr - NotoSansKR bitmap bits2",
+      "fontPath": "./Font/no_overlap/NotoSansKR_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "codepage",
+          "value": "CP949"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotothai - NotoSansThai bitmap bits2",
+      "fontPath": "./Font/NotoSansThai_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0000-0xFFFF"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotohebrew - NotoSansHebrew bitmap bits2",
+      "fontPath": "./Font/NotoSansHebrew_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 2,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "bitmap",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0000-0xFFFF"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotovec - NotoSans vector",
+      "fontPath": "./Font/NotoSans_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "vector",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotoscvec - NotoSansSC vector",
+      "fontPath": "./Font/no_overlap/NotoSansSC_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "vector",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "file",
+          "value": "../../charset/GB2312.cst"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotojpvec - NotoSansJP vector",
+      "fontPath": "./Font/no_overlap/NotoSansJP_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "vector",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "codepage",
+          "value": "CP932"
+        }
+      ]
+    },
+    {
+      "_comment": "fontnotokrvec - NotoSansKR vector",
+      "fontPath": "./Font/no_overlap/NotoSansKR_Regular.ttf",
+      "outputPath": "./output_honeygui_test/",
+      "fontSize": 32,
+      "renderMode": 4,
+      "bold": false,
+      "italic": false,
+      "indexMethod": 1,
+      "crop": true,
+      "outputFormat": "vector",
+      "characterSets": [
+        {
+          "type": "range",
+          "value": "0x0020-0x007E"
+        },
+        {
+          "type": "codepage",
+          "value": "CP949"
+        }
+      ]
+    }
+  ]
+}
