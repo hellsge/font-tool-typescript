@@ -26,9 +26,13 @@ const testFontExists = fs.existsSync(TEST_FONT_PATH);
 /**
  * Helper function to create a temporary character set file
  */
+let cstFileCounter = 0;
 function createTempCharsetFile(characters: number[]): string {
   const tempDir = os.tmpdir();
-  const tempFile = path.join(tempDir, `test-charset-${Date.now()}.cst`);
+  const tempFile = path.join(
+    tempDir,
+    `test-charset-${Date.now()}-${process.pid}-${cstFileCounter++}.cst`
+  );
   CharsetProcessor.writeCSTFile(tempFile, characters);
   return tempFile;
 }
