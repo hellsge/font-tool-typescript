@@ -287,6 +287,23 @@ export class BinaryWriter {
   }
 
   /**
+   * Freezes the writer and verifies the final size matches the expected value.
+   * Throws if the actual written bytes don't match, catching size calculation bugs
+   * that would otherwise be silently swallowed by auto-expansion.
+   *
+   * @param expectedSize - Expected total bytes written
+   * @returns Buffer containing written data
+   */
+  freeze(expectedSize?: number): Buffer {
+    if (expectedSize !== undefined && this.offset !== expectedSize) {
+      throw new RangeError(
+        `BinaryWriter size mismatch: wrote ${this.offset} bytes, expected ${expectedSize}`
+      );
+    }
+    return this.getBuffer();
+  }
+
+  /**
    * Writes a value at a specific offset without changing the current position
    * Useful for updating header fields after writing data
    *

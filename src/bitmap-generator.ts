@@ -605,7 +605,7 @@ export class BitmapFontGenerator extends FontGenerator {
     await this.writeGlyphData(writer, indexArray, indexStartOffset);
 
     try {
-      fs.writeFileSync(filePath, writer.getBuffer());
+      fs.writeFileSync(filePath, writer.freeze(totalSize));
     } catch (error) {
       throw createFileWriteError(filePath, error as Error);
     }
