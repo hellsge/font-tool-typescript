@@ -22,12 +22,22 @@ import {
 import { PathUtils } from './path-utils';
 
 /**
- * Raw JSON configuration structure (as it appears in files)
- * This matches the C++ implementation format
+ * Single font entry in the JSON configuration
  */
-interface RawJSONConfig {
-  OutputFolder?: string;
+interface RawFontConfigEntry {
+  fontPath?: string;
+  font?: string;
+  outputPath?: string;
   outputFolder?: string;
+  fontSize?: number;
+  renderMode?: number;
+  bold?: boolean;
+  italic?: boolean;
+  rotation?: number;
+  gamma?: number;
+  indexMethod?: number;
+  crop?: number | boolean;
+  characterSets?: CharacterSetSource[];
   codePages?: string[];
   cstPaths?: string[];
   customerVals?: Array<{
@@ -36,6 +46,18 @@ interface RawJSONConfig {
   }>;
   customRanges?: number[][];
   symbolPaths?: string[];
+  outputFormat?: number | string;
+}
+
+/**
+ * Raw JSON configuration structure (as it appears in files)
+ * This matches the C++ implementation format.
+ * Extends RawFontConfigEntry because the root object itself can serve as
+ * a single-font configuration (all font fields are optional at root level).
+ */
+interface RawJSONConfig extends RawFontConfigEntry {
+  OutputFolder?: string;
+  outputFolder?: string;
   fontSet?: {
     bold?: boolean;
     italic?: boolean;
@@ -48,42 +70,8 @@ interface RawJSONConfig {
     rotation?: number;
     gamma?: number;
   };
-  // Alternative format: direct font configuration
-  font?: string;
-  fontSize?: number;
-  renderMode?: number;
-  bold?: boolean;
-  italic?: boolean;
-  rotation?: number;
-  gamma?: number;
-  indexMethod?: number;
-  crop?: number | boolean;
-  outputFormat?: number | string;
   // Multiple fonts format
-  fonts?: Array<{
-    fontPath?: string;
-    font?: string;
-    outputPath?: string;
-    outputFolder?: string;
-    fontSize?: number;
-    renderMode?: number;
-    bold?: boolean;
-    italic?: boolean;
-    rotation?: number;
-    gamma?: number;
-    indexMethod?: number;
-    crop?: number | boolean;
-    characterSets?: CharacterSetSource[];
-    codePages?: string[];
-    cstPaths?: string[];
-    customerVals?: Array<{
-      firstVal: string;
-      range: string;
-    }>;
-    customRanges?: number[][];
-    symbolPaths?: string[];
-    outputFormat?: number | string;
-  }>;
+  fonts?: RawFontConfigEntry[];
 }
 
 /**
@@ -172,7 +160,7 @@ export class ConfigManager {
    * Parses a single font configuration
    */
   private static parseSingleFontConfig(
-    fontConfig: any,
+    fontConfig: RawFontConfigEntry | RawJSONConfig,
     rootConfig: RawJSONConfig,
     configDir: string
   ): FontConfig {
@@ -204,7 +192,7 @@ export class ConfigManager {
    * Parses character sets from configuration
    */
   private static parseCharacterSets(
-    fontConfig: any,
+    fontConfig: RawFontConfigEntry | RawJSONConfig,
     rootConfig?: RawJSONConfig
   ): CharacterSetSource[] {
     const sources: CharacterSetSource[] = [];
