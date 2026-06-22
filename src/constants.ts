@@ -6,11 +6,10 @@
  */
 
 import { RenderMode, Rotation, IndexMethod } from './types';
+import pkg from '../package.json';
 
 /**
- * Read version from package.json via require().
- * Works in both src/ (ts-node) and dist/ (compiled) since both directories
- * are one level deep from the project root.
+ * Read version from package.json.
  */
 function getPackageVersion(): {
   major: number;
@@ -20,7 +19,6 @@ function getPackageVersion(): {
   string: string;
 } {
   try {
-    const pkg = require('../package.json');
     const versionStr: string = pkg.version || '3.2.0';
     const parts = versionStr.split('.').map((p: string) => parseInt(p, 10) || 0);
     return {

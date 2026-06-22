@@ -33,7 +33,7 @@ export function calculateStandardDimensions(
   }
 
   const renderSize = fontSize;
-  let backSize = Math.ceil((fontSize * (ascender - descender)) / unitsPerEm);
+  const backSize = Math.ceil((fontSize * (ascender - descender)) / unitsPerEm);
 
   return { renderSize, backSize };
 }
