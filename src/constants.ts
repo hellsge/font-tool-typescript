@@ -20,9 +20,8 @@ function getPackageVersion(): {
   string: string;
 } {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pkg = require('../package.json');
-    const versionStr: string = pkg.version || '3.1.1';
+    const versionStr: string = pkg.version || '3.2.0';
     const parts = versionStr.split('.').map((p: string) => parseInt(p, 10) || 0);
     return {
       major: parts[0] || 0,
@@ -33,7 +32,7 @@ function getPackageVersion(): {
     };
   } catch {
     // fallback 与 package.json 中的版本保持一致
-    return { major: 3, minor: 1, revision: 1, build: 0, string: '3.1.1' };
+    return { major: 3, minor: 2, revision: 0, build: 0, string: '3.2.0' };
   }
 }
 
@@ -157,8 +156,8 @@ export const VALIDATION_LIMITS = {
   /** Minimum font size in points */
   MIN_FONT_SIZE: 1,
 
-  /** Maximum font size in points */
-  MAX_FONT_SIZE: 255,
+  /** Maximum font size in points (V3 stores font_size as uint16; capped at 1024) */
+  MAX_FONT_SIZE: 1024,
 
   /** Minimum gamma value */
   MIN_GAMMA: 0.1,

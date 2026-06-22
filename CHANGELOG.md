@@ -1,5 +1,21 @@
 # 更新日志
 
+## [3.2.0] - 2026-06-22
+
+点阵字体 V3 header —— `fontSize` 扩展为 uint16，支持 > 255 的字号。
+
+### 新增
+- 点阵 V3 header（`versionMajor >= 3`）：版本号缩为 3 字节，释放的第 4 字节（原 `version_buildnum`）与 `font_size` 合并为 offsets 5-6 的 uint16 LE。`render_mode` 及其后字段偏移保持与 V1/V2 一致，header 总长不变
+- `BitmapFontHeader.toBytes()/fromBytes()`：按 `versionMajor` 分支读写 fontSize（V3 uint16 / V1·V2 uint8 + buildnum）
+
+### 变更
+- `VALIDATION_LIMITS.MAX_FONT_SIZE`：255 → 1024（font_size 物理上限为 uint16，但校验收紧到 1024）
+- `calculateStandardDimensions()`：移除 backSize 截断到 255 的逻辑（字形 width/height 仍在字形级独立 clamp 到 uint8，不影响二进制；放开后允许大字号使用更大的渲染画布）
+
+> ⚠️ 二进制格式变更：消费端（HoneyGUI C 库）的点阵字体读取需同步按 `versionMajor >= 3` 读取 uint16 font_size，否则 size > 255 的字库在设备上会被错误解析。
+
+---
+
 ## [3.1.1] - 2026-04-27
 
 点阵字体低 bit 模式字形纵向对齐修复。

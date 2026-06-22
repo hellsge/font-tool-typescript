@@ -122,7 +122,7 @@ describe('Configuration Validation', () => {
 
     it('should reject fontSize above maximum', () => {
       const config = createValidConfig();
-      config.fontSize = 300;
+      config.fontSize = 2000;
 
       expect(() => ConfigManager.validateConfig(config)).toThrow(FontConverterError);
       try {

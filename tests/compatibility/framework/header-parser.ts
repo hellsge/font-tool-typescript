@@ -130,8 +130,10 @@ export interface HeaderParseResult {
  * - version_major (1 byte)
  * - version_minor (1 byte)
  * - version_revision (1 byte)
- * - size (1 byte): Recalculated font size
- * - fontSize (1 byte): backSize value
+ * - font_size:
+ *     - V3 (versionMajor >= 3): uint16 LE at offsets 5-6 (the freed 4th version
+ *       byte merged into it); no separate size byte.
+ *     - V1/V2: size (1 byte, the 4th version byte) + fontSize (1 byte, uint8).
  * - renderMode (1 byte): 1/2/4/8
  * - bitfield (1 byte): bold, italic, rvd, indexMethod, crop, reserved
  * - indexAreaSize (4 bytes, int32): Size of index array in bytes
@@ -155,11 +157,20 @@ export function parseBitmapHeader(data: Buffer): ParsedBitmapHeader {
   const versionMinor = data.readUInt8(offset++);
   const versionRevision = data.readUInt8(offset++);
 
-  // Read size (1 byte)
-  const size = data.readUInt8(offset++);
-
-  // Read fontSize (1 byte)
-  const fontSize = data.readUInt8(offset++);
+  // Read size + fontSize.
+  // V3 (versionMajor >= 3): font_size is uint16 LE at offsets 5-6 — the freed 4th
+  // version byte merged into it; there is no separate size byte.
+  // V1/V2: 4th version byte (size) at offset 5, font_size uint8 at offset 6.
+  let size: number;
+  let fontSize: number;
+  if (versionMajor >= 3) {
+    fontSize = data.readUInt16LE(offset);
+    offset += 2;
+    size = fontSize;
+  } else {
+    size = data.readUInt8(offset++);
+    fontSize = data.readUInt8(offset++);
+  }
 
   // Read renderMode (1 byte)
   const renderMode = data.readUInt8(offset++);

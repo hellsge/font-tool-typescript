@@ -63,13 +63,20 @@ describe('Feature: typescript-font-converter, Property 14: Binary Format 与 C++
     offset += 1;
     const versionRevision = buffer.readUInt8(offset);
     offset += 1;
-    const versionBuildnum = buffer.readUInt8(offset);
-    offset += 1;
 
-    // Read size and fontSize
-    // V2 layout: no separate 'size' field, only fontSize
-    const fontSize = buffer.readUInt8(offset);
-    offset += 1;
+    // Read font_size.
+    // V3 (versionMajor >= 3): font_size is uint16 LE at offsets 5-6 — the freed
+    // 4th version byte (version_buildnum) merged into it.
+    // V1/V2: version_buildnum (1 byte, skipped) + font_size (1 byte, uint8).
+    let fontSize: number;
+    if (versionMajor >= 3) {
+      fontSize = buffer.readUInt16LE(offset);
+      offset += 2;
+    } else {
+      offset += 1; // skip version_buildnum
+      fontSize = buffer.readUInt8(offset);
+      offset += 1;
+    }
 
     // Read render mode
     const renderMode = buffer.readUInt8(offset);

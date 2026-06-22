@@ -291,9 +291,9 @@ const invalidFontConfigArbitrary = (): fc.Arbitrary<{
       config: fontConfigArbitrary().map((config) => ({ ...config, fontSize: 0 })),
       invalidField: fc.constant('fontSize'),
     }),
-    // fontSize out of range (too large)
+    // fontSize out of range (too large, exceeds MAX_FONT_SIZE = 1024)
     fc.record({
-      config: fontConfigArbitrary().map((config) => ({ ...config, fontSize: 300 })),
+      config: fontConfigArbitrary().map((config) => ({ ...config, fontSize: 2000 })),
       invalidField: fc.constant('fontSize'),
     }),
     // gamma out of range (too small)

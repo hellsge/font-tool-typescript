@@ -30,7 +30,8 @@ const fontNameArbitrary = fc
 const bitmapFontHeaderConfigArbitrary: fc.Arbitrary<BitmapFontHeaderConfig> = fc.record({
   fontName: fontNameArbitrary,
   size: fc.integer({ min: 1, max: 255 }),
-  fontSize: fc.integer({ min: 1, max: 255 }),
+  // V3 bitmap header stores font_size as uint16 → exercise the > 255 range
+  fontSize: fc.integer({ min: 1, max: 1024 }),
   renderMode: fc.constantFrom(
     RenderMode.BIT_1,
     RenderMode.BIT_2,
@@ -72,11 +73,13 @@ describe('Feature: typescript-font-converter, Property 13: Binary Format 版本�
         const header = new BitmapFontHeader(config);
         const bytes = header.toBytes();
 
-        // V2 writes version from package.json (3.0.0)
+        // V3 layout: version is 3 bytes (offsets 2-4); the freed 4th byte merges
+        // with font_size into a uint16 LE at offsets 5-6.
         expect(bytes[2]).toBe(VERSION.BITMAP.MAJOR);
         expect(bytes[3]).toBe(VERSION.BITMAP.MINOR);
         expect(bytes[4]).toBe(VERSION.BITMAP.REVISION);
-        expect(bytes[5]).toBe(VERSION.BITMAP.BUILD);
+        // font_size round-trips as uint16 (supports values > 255)
+        expect(bytes.readUInt16LE(5)).toBe(config.fontSize);
       }),
       { numRuns: 100 }
     );

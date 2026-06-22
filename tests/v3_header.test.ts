@@ -1,8 +1,15 @@
 /**
- * Unit tests for V2 header serialization and calculateStandardDimensions
+ * Unit tests for bitmap font header (V3) serialization and calculateStandardDimensions.
  *
- * Covers Task 1.1 (GlyphHeaderV2, calculateStandardDimensions) and
- * Task 1.3 (V2 header serialization/deserialization)
+ * Header is V3 (versionMajor >= 3): font_size is a uint16 LE at offsets 5-6.
+ * The "V2" describe blocks below refer to BitmapFontHeader.isV2 — the typography
+ * extension mode (ascender/descender/lineGap/unitsPerEm), introduced in V2 and
+ * carried forward unchanged into V3 — not to the header version number.
+ *
+ * Covers:
+ *   - calculateStandardDimensions (no backSize clamp)
+ *   - isV2 typography extension round-trip
+ *   - V1 (no-typography) backward compatibility
  */
 
 import {
@@ -32,12 +39,12 @@ describe('calculateStandardDimensions', () => {
     expect(() => calculateStandardDimensions(-1, 2048, 1900, -500)).toThrow();
   });
 
-  it('clamps backSize to 255 and warns', () => {
+  it('does not clamp backSize (V3 supports font sizes > 255)', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    // fontSize=200, asc=2000, desc=-1000, upm=1000 → backSize = ceil(200*3000/1000) = 600 → clamp 255
+    // fontSize=200, asc=2000, desc=-1000, upm=1000 → backSize = ceil(200*3000/1000) = 600
     const result = calculateStandardDimensions(200, 1000, 2000, -1000);
-    expect(result.backSize).toBe(255);
-    expect(warnSpy).toHaveBeenCalled();
+    expect(result.backSize).toBe(600);
+    expect(warnSpy).not.toHaveBeenCalled();
     warnSpy.mockRestore();
   });
 
@@ -167,19 +174,21 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     expect(bytes[0]).toBe(header.length);
   });
 
-  it('writes version from package.json at offsets 2-5', () => {
+  it('writes version (3 bytes, offsets 2-4) and font_size (uint16, offsets 5-6)', () => {
     const header = new BitmapFontHeader(makeV2Config());
     const bytes = header.toBytes();
     expect(bytes[2]).toBe(VERSION.MAJOR);
     expect(bytes[3]).toBe(VERSION.MINOR);
     expect(bytes[4]).toBe(VERSION.REVISION);
-    expect(bytes[5]).toBe(VERSION.BUILD);
+    // V3: the freed 4th version byte merges with font_size into a uint16 LE
+    expect(bytes.readUInt16LE(5)).toBe(32);
   });
 
   it('writes crop bit = 1 in bitfield', () => {
     const header = new BitmapFontHeader(makeV2Config());
     const bytes = header.toBytes();
-    const bitfield = bytes[9]; // offset 9 after 4th version byte
+    // bitfield at offset 8: length(1)+fileFlag(1)+version(3)+fontSize(2)+renderMode(1)
+    const bitfield = bytes[8];
     expect(bitfield & 0x10).toBe(0x10);
   });
 

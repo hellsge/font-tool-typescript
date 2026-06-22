@@ -150,7 +150,7 @@ describe('Feature: typescript-font-converter, Property 22: 错误处理返回非
         {
           fontPath: fontPath,
           outputPath: './output',
-          fontSize: 999, // Invalid - exceeds max
+          fontSize: 2000, // Invalid - exceeds max (1024)
           renderMode: 4,
           bold: false,
           italic: false,

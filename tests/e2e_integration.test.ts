@@ -457,7 +457,7 @@ describe('E2E Integration Tests', () => {
           {
             fontPath: testFontPath,
             outputPath: testOutputDir,
-            fontSize: 999, // Invalid: exceeds max font size
+            fontSize: 2000, // Invalid: exceeds max font size (1024)
             renderMode: 8,
             bold: false,
             italic: false,
