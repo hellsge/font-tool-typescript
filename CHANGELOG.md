@@ -1,5 +1,24 @@
 # 更新日志
 
+## [3.2.1] - 2026-06-23
+
+点阵字体 Glyph Header 字段扩展为 16-bit，支持大字号字形尺寸超 255 的场景。
+
+### 变更
+
+- `GlyphHeader` 从 6 字节（int8/uint8 字段）扩展为 10 字节（int16/uint16 字段），bearingX/bearingY/width/height/advance 均升为有符号/无符号 16-bit；移除原 reserved padding 字节
+- `GlyphHeaderV2` 重命名为 `GlyphHeaderV3`，与 V3 bitmap format 命名保持一致
+- `BitmapFontHeader.fromBytes()` 移除 V1/V2 死代码，始终以 uint16 LE 读取 font_size
+- 删除 `versionBuildnum` 字段（已在 3.2.0 合并入 uint16 font_size）
+
+### 修复
+
+- `tests/v3_header.test.ts`：更新 `GlyphHeaderV2` → `GlyphHeaderV3` 引用，移除 versionBuildnum 断言
+
+> ⚠️ 二进制格式变更：glyph header stride 由 6 字节变为 10 字节，消费端（HoneyGUI C 库）需同步更新 glyph header 读取逻辑。
+
+---
+
 ## [3.2.0] - 2026-06-22
 
 点阵字体 V3 header —— `fontSize` 扩展为 uint16，支持 > 255 的字号。
