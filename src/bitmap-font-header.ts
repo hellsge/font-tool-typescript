@@ -95,10 +95,7 @@ export interface BitmapFontHeaderConfig {
  *   - version_major (1 byte)
  *   - version_minor (1 byte)
  *   - version_revision (1 byte)
- *   - font_size (offsets 5-6):
- *       - V3 (version_major >= 3): uint16 LE, supports > 255. The 4th version
- *         byte (version_buildnum) is dropped and merged into font_size.
- *       - V1/V2: version_buildnum (1 byte) + font_size (1 byte, uint8).
+ *   - font_size (offsets 5-6): uint16 LE, supports > 255
  *   - renderMode (1 byte): 1/2/4/8
  *   - bitfield (1 byte): bold, italic, rvd, indexMethod, crop, reserved
  *   - indexAreaSize (4 bytes, int32): Size of index array in bytes
@@ -122,9 +119,6 @@ export class BitmapFontHeader {
 
   /** Version revision */
   public readonly versionRevision: number;
-
-  /** Version build number (4th version byte, added for V2) */
-  public readonly versionBuildnum: number;
 
   /** Recalculated font size */
   public readonly size: number;
@@ -198,20 +192,17 @@ export class BitmapFontHeader {
     // Detect V2 mode: all three typography fields must be provided
     this.isV2 = config.ascender != null && config.descender != null && config.unitsPerEm != null;
 
+    this.versionMajor = VERSION.BITMAP.MAJOR;
+    this.versionMinor = VERSION.BITMAP.MINOR;
+    this.versionRevision = VERSION.BITMAP.REVISION;
+
     if (this.isV2) {
-      // V2 validation
       if (config.ascender! <= 0) {
-        throw new Error(`V2 ascender must be positive, got ${config.ascender}`);
+        throw new Error(`ascender must be positive, got ${config.ascender}`);
       }
       if (config.descender! >= 0) {
-        throw new Error(`V2 descender must be negative, got ${config.descender}`);
+        throw new Error(`descender must be negative, got ${config.descender}`);
       }
-
-      // V2: version from package.json, crop always true, fontSize = em-size
-      this.versionMajor = VERSION.BITMAP.MAJOR;
-      this.versionMinor = VERSION.BITMAP.MINOR;
-      this.versionRevision = VERSION.BITMAP.REVISION;
-      this.versionBuildnum = VERSION.BITMAP.BUILD;
       this.crop = true;
       this.fontSize = config.fontSize;
       this.ascender = config.ascender;
@@ -219,11 +210,6 @@ export class BitmapFontHeader {
       this.lineGap = config.lineGap ?? 0;
       this.unitsPerEm = config.unitsPerEm;
     } else {
-      // V1: version from package.json
-      this.versionMajor = VERSION.BITMAP.MAJOR;
-      this.versionMinor = VERSION.BITMAP.MINOR;
-      this.versionRevision = VERSION.BITMAP.REVISION;
-      this.versionBuildnum = VERSION.BITMAP.BUILD;
       this.crop = config.crop;
       this.fontSize = config.fontSize;
     }
@@ -236,7 +222,7 @@ export class BitmapFontHeader {
     );
 
     // Calculate total header length:
-    // CONFIG_SIZE (13) + 2 (length + fontNameLength) + fontNameLength [+ 8 for V2 extension]
+    // CONFIG_SIZE (12) + 2 (length + fontNameLength) + fontNameLength [+ 8 for V2 extension]
     this.length =
       BitmapFontHeader.CONFIG_SIZE +
       2 +
@@ -302,15 +288,7 @@ export class BitmapFontHeader {
     writer.writeUint8(this.versionMajor); // version_major (1 byte)
     writer.writeUint8(this.versionMinor); // version_minor (1 byte)
     writer.writeUint8(this.versionRevision); // version_revision (1 byte)
-    // V3 (versionMajor >= 3): version shrinks to 3 bytes, freed byte merges with
-    // font_size to form uint16 LE at offsets 5-6. All fields from render_mode
-    // onwards stay at the same byte offsets as V1/V2.
-    if (this.versionMajor >= 3) {
-      writer.writeUint16LE(this.fontSize); // fontSize (2 bytes, uint16 LE) — supports > 255
-    } else {
-      writer.writeUint8(this.versionBuildnum); // version_buildnum (1 byte)
-      writer.writeUint8(this.fontSize); // fontSize (1 byte)
-    }
+    writer.writeUint16LE(this.fontSize); // font_size (uint16 LE, offsets 5-6)
     writer.writeUint8(this.renderMode); // renderMode (1 byte)
 
     // Write bitfield (1 byte)
@@ -362,16 +340,8 @@ export class BitmapFontHeader {
     const versionMajor = data.readUInt8(offset++);
     const _versionMinor = data.readUInt8(offset++);
     const _versionRevision = data.readUInt8(offset++);
-    // V3: version is 3 bytes, font_size is uint16 LE at offsets 5-6
-    // V1/V2: version is 4 bytes (buildnum), font_size is uint8 at offset 6
-    let fontSize: number;
-    if (versionMajor >= 3) {
-      fontSize = data.readUInt16LE(offset);
-      offset += 2;
-    } else {
-      const _versionBuildnum = data.readUInt8(offset++);
-      fontSize = data.readUInt8(offset++);
-    }
+    const fontSize = data.readUInt16LE(offset); // font_size (uint16 LE, offsets 5-6)
+    offset += 2;
     const renderMode = data.readUInt8(offset++) as RenderMode;
 
     // Read bitfield

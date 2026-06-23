@@ -65,10 +65,9 @@ describe('GlyphHeaderV2 interface', () => {
       width: 18,
       height: 30,
       advance: 20,
-      reserved: 0,
     };
     expect(header.bearingX).toBe(-2);
-    expect(header.reserved).toBe(0);
+    expect(header.advance).toBe(20);
   });
 });
 
