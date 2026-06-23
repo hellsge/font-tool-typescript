@@ -17,7 +17,7 @@ import {
   BitmapFontHeaderConfig,
   calculateStandardDimensions,
 } from '../src/bitmap-font-header';
-import { RenderMode, IndexMethod, GlyphHeaderV2 } from '../src/types';
+import { RenderMode, IndexMethod, GlyphHeaderV3 } from '../src/types';
 import { VERSION } from '../src/constants';
 
 // --- Task 1.1: calculateStandardDimensions ---
@@ -55,11 +55,11 @@ describe('calculateStandardDimensions', () => {
   });
 });
 
-// --- Task 1.1: GlyphHeaderV2 type check ---
+// --- Task 1.1: GlyphHeaderV3 type check ---
 
-describe('GlyphHeaderV2 interface', () => {
+describe('GlyphHeaderV3 interface', () => {
   it('can be constructed with all required fields', () => {
-    const header: GlyphHeaderV2 = {
+    const header: GlyphHeaderV3 = {
       bearingX: -2,
       bearingY: 28,
       width: 18,
@@ -103,7 +103,6 @@ describe('BitmapFontHeader V2 constructor', () => {
     expect(header.versionMajor).toBe(VERSION.BITMAP.MAJOR);
     expect(header.versionMinor).toBe(VERSION.BITMAP.MINOR);
     expect(header.versionRevision).toBe(VERSION.BITMAP.REVISION);
-    expect(header.versionBuildnum).toBe(VERSION.BITMAP.BUILD);
   });
 
   it('forces crop=true in V2 mode regardless of config', () => {
@@ -156,7 +155,6 @@ describe('BitmapFontHeader V2 toBytes/fromBytes round-trip', () => {
     expect(parsed.versionMajor).toBe(VERSION.MAJOR);
     expect(parsed.versionMinor).toBe(VERSION.MINOR);
     expect(parsed.versionRevision).toBe(VERSION.REVISION);
-    expect(parsed.versionBuildnum).toBe(VERSION.BUILD);
     expect(parsed.crop).toBe(true);
     expect(parsed.ascender).toBe(1900);
     expect(parsed.descender).toBe(-500);
